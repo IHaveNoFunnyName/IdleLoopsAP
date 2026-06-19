@@ -1,5 +1,5 @@
 
-(async function() {
+(async function () {
     'use strict';
 
     const AP = await import("https://IHaveNoFunnyName.github.io/IdleLoopsAP/archipelago.min.js");
@@ -18,6 +18,10 @@
         "WildMana": 10,
         "Herbs": 10,
         "Hunt": 10,
+        "Gamble": 10,
+        "Geysers": 100,
+        "MineSoulstones": 10,
+        "Artifacts": 25,
     }
     const segments = {
         "Heal": 3,
@@ -35,7 +39,7 @@
         state = {};
         scouts = {};
         location_name_to_id = location_name_to_id;
-        
+
         /**
          * Called on script load, to inject the AP connect form
          */
@@ -44,7 +48,7 @@
             const menu = document.getElementById("menu")
             menu.style.width = "1px";
             menu.style.display = "inline-flex";
-            
+
 
             const connect = document.createElement("form");
             connect.id = "APconnect";
@@ -147,28 +151,28 @@
             // Idle Loops scatters *all* of its stuff all around global scope
             // but in a way that doesn't show up in `window`
             // i'd really prefer it to be obvious when i'm using global scope
-            for(let town = 0; town <= this.goalZone; town++) {
+            for (let town = 0; town <= this.goalZone; town++) {
 
                 // Overwriting action visibility and unlocked
                 // And send a check when finishing an action, it's meant to be for the first time but the client filters duplicate checks
                 // Not optimized but whatever
-                for(const action of towns[town].totalActionList) {
+                for (const action of towns[town].totalActionList) {
                     action._visible = action.visible;
-                    action.visible = function() {
+                    action.visible = function () {
                         return window.IdleLoopsAP.visible(this);
                     }
                     action._unlocked = action.unlocked;
-                    action.unlocked = function() {
+                    action.unlocked = function () {
                         return window.IdleLoopsAP.unlocked(this);
                     }
 
-                    if(action.type == "progress") {
-                       const el = document.querySelector(`#infoContainer${action.varName} .showthat`);
-                       const hover = el.querySelector(".showthis");
-                       el.addEventListener("mouseover", () => {window.IdleLoopsAP.scoutProgress(hover, town, action.varName)});
+                    if (action.type == "progress") {
+                        const el = document.querySelector(`#infoContainer${action.varName} .showthat`);
+                        const hover = el.querySelector(".showthis");
+                        el.addEventListener("mouseover", () => { window.IdleLoopsAP.scoutProgress(hover, town, action.varName) });
                     }
 
-                    if(action.type == "limited") {
+                    if (action.type == "limited") {
                         const el = document.querySelector(`#infoContainer${action.varName} .showthat`);
                         const badUIdecisions = el.querySelectorAll(".fa-arrow-left")
                         const slash = document.createElement("span");
@@ -179,17 +183,21 @@
                         badUIdecisions[1].replaceWith(unchecked);
 
                         const hover = el.querySelector(".showthis");
-                        el.addEventListener("mouseover", () => {window.IdleLoopsAP.scoutLimited(hover, town, action.varName)});
+                        el.addEventListener("mouseover", () => { window.IdleLoopsAP.scoutLimited(hover, town, action.varName) });
                     }
 
                     // Annoyingly skill actions are of type normal
-                    if(action.type == "normal" && !skill_actions.includes(action.varName)) {
+                    if (action.type == "normal" && !skill_actions.includes(action.varName)) {
                         action._finish = action.finish;
-                        action.finish = function() {
+                        action.finish = function () {
                             window.IdleLoopsAP.location(`Z${town + 1} - ${this.varName}`);
-                            if(window.IdleLoopsAP.goalZone == 0 && this.varName == "StartJourney") {
+                            if (window.IdleLoopsAP.goalZone == 0 && this.varName == "StartJourney") {
                                 window.IdleLoopsAP.client.goal();
-                            } else if(window.IdleLoopsAP.goalZone == 1 && this.varName == "ContinueOn") {
+                            } else if (window.IdleLoopsAP.goalZone == 1 && this.varName == "ContinueOn") {
+                                window.IdleLoopsAP.client.goal();
+                            } else if (window.IdleLoopsAP.goalZone == 2 && this.varName == "StartTrek") {
+                                window.IdleLoopsAP.client.goal();
+                            } else if (window.IdleLoopsAP.goalZone == 3 && this.varName == "FaceJudgement") {
                                 window.IdleLoopsAP.client.goal();
                             }
                             return this._finish();
@@ -200,17 +208,17 @@
                         scoutcontainer.classList.add("scout");
                         hover.prepend(document.createElement("br"));
                         hover.prepend(scoutcontainer);
-                        el.addEventListener("mouseover", () => {window.IdleLoopsAP.scoutRegular(scoutcontainer, town, action.varName)});
+                        el.addEventListener("mouseover", () => { window.IdleLoopsAP.scoutRegular(scoutcontainer, town, action.varName) });
                     }
 
-                    if(action.type == "multipart") {
+                    if (action.type == "multipart") {
                         const el = document.querySelector(`#container${action.varName}.showthat`);
                         const hover = el.querySelector(".showthis");
                         const scoutcontainer = document.createElement("div");
                         scoutcontainer.classList.add("scout");
                         hover.prepend(document.createElement("br"));
                         hover.prepend(scoutcontainer);
-                        el.addEventListener("mouseover", () => {window.IdleLoopsAP.scoutMultipart(scoutcontainer, town, action.varName)});
+                        el.addEventListener("mouseover", () => { window.IdleLoopsAP.scoutMultipart(scoutcontainer, town, action.varName) });
                     }
                 }
 
@@ -220,8 +228,8 @@
                         // Overwrite whatever the game thinks it has with the number of checks of this type recieved
                         if (prop.startsWith("good")) {
                             const name = prop.substring(4);
-                            if(!name.startsWith("Temp")) {
-                                return this.state?.[`Z${town+1} - ${name}`] || 0;
+                            if (!name.startsWith("Temp")) {
+                                return this.state?.[`Z${town + 1} - ${name}`] || 0;
                             }
                         }
 
@@ -238,13 +246,13 @@
                         // Whatever i realised that after finishing
                         if (value > 0 && prop.startsWith("good")) {
                             const name = prop.substring(4);
-                            if(!name.startsWith("Temp")) {
+                            if (!name.startsWith("Temp")) {
                                 const rewardRatio = limitedRewardRatios[name];
-                                this.location(`Z${town+1} - ${name} - #${Math.floor(target['checked' + name] / rewardRatio)}`);
+                                this.location(`Z${town + 1} - ${name} - #${Math.floor(target['checked' + name] / rewardRatio)}`);
                                 return true;
                             }
                         }
-                        
+
                         // Location: Gaining a Progress Bar %
                         // We could get this by overwriting town.finishProgress, but right now i prefer to do as much as possible via proxies
                         // Just documenting alternate solutions to get a head start later if this ends up broken
@@ -253,8 +261,8 @@
                             const prevLevel = target.getLevel(name);
                             Reflect.set(target, prop, value, receiver);
                             const newLevel = target.getLevel(name);
-                            for(let i = prevLevel + 1; i <= newLevel; i++) {
-                                if(bar_locations.includes(i)) {
+                            for (let i = prevLevel + 1; i <= newLevel; i++) {
+                                if (bar_locations.includes(i)) {
                                     this.location(`Z${town + 1} - ${name} - ${i}%`);
                                 }
                             }
@@ -266,14 +274,17 @@
                         // At least doing your highest completion again is trivial
                         if (value > 0 && prop.endsWith("LoopCounter")) {
                             const name = prop.substring(0, prop.length - 11);
-                            this.location(`Z${town + 1} - ${name} - Completion #${value / segments[name]}`);
+                            // Silly way to not send checks for buffs, just don't put them in segments
+                            if (name in segments) {
+                                this.location(`Z${town + 1} - ${name} - Completion #${value / segments[name]}`);
+                            }
                         }
 
                         return Reflect.set(target, prop, value, receiver);
                     }
                 });
                 // We need to add a line half way through this function, annoying that means copying a whole function
-                towns[town].finishRegular = function(varName, rewardRatio, rewardFunc) {
+                towns[town].finishRegular = function (varName, rewardRatio, rewardFunc) {
                     // error state, negative numbers.
                     if (this[`total${varName}`] - this[`checked${varName}`] < 0) {
                         this[`checked${varName}`] = this[`total${varName}`];
@@ -287,7 +298,7 @@
                     // AND the user has not disabled checking unchecked items OR there are no checked items left
                     const searchToggler = document.getElementById(`searchToggler${varName}`);
                     if (this[`total${varName}`] - this[`checked${varName}`] > 0 && ((searchToggler && !searchToggler.checked) || this[`goodTemp${varName}`] <= 0)) {
-                        if(`Z${this.index + 1} - ${varName} - Search` in window.IdleLoopsAP.state) {
+                        if (`Z${this.index + 1} - ${varName} - Search` in window.IdleLoopsAP.state) {
                             this[`checked${varName}`]++;
                             if (this[`checked${varName}`] % rewardRatio === 0) {
                                 //this[`lootFrom${varName}`] += rewardFunc();
@@ -304,18 +315,18 @@
                         this[`goodTemp${varName}`]--;
                         this[`lootFrom${varName}`] += rewardFunc();
                     }
-                    view.requestUpdate("updateRegular", {name: varName, index: this.index});
+                    view.requestUpdate("updateRegular", { name: varName, index: this.index });
                 }
             }
 
-            for(const skill in skills) {
+            for (const skill in skills) {
                 skills[skill] = new Proxy(skills[skill], {
                     set: (target, prop, value, receiver) => {
                         const prevLevel = getSkillLevel(skill);
                         const success = Reflect.set(target, prop, value, receiver);
                         const newLevel = getSkillLevel(skill);
-                        for(let i = prevLevel + 1; i <= newLevel; i++) {
-                            if(skill_locations.includes(i)) {
+                        for (let i = prevLevel + 1; i <= newLevel; i++) {
+                            if (skill_locations.includes(i)) {
                                 window.IdleLoopsAP.location(`${skill} - Level ${i}`);
                             }
                         }
@@ -329,7 +340,23 @@
                 scoutcontainer.classList.add("scout");
                 hover.prepend(document.createElement("br"));
                 hover.prepend(scoutcontainer);
-                el.addEventListener("mouseover", () => {window.IdleLoopsAP.scoutSkill(scoutcontainer, skill)});
+                el.addEventListener("mouseover", () => { window.IdleLoopsAP.scoutSkill(scoutcontainer, skill) });
+            }
+
+            for (const buff in buffs) {
+                buffs[buff] = new Proxy(buffs[buff], {
+                    set: (target, prop, value, receiver) => {
+                        const prevLevel = target[prop];
+                        const success = Reflect.set(target, prop, value, receiver);
+                        const newLevel = value;
+                        for (let i = prevLevel + 1; i <= newLevel; i++) {
+                            if (skill_locations.includes(i)) {
+                                window.IdleLoopsAP.location(`${buff} - Level ${i}`);
+                            }
+                        }
+                        return success;
+                    }
+                });
             }
 
             restart = () => {
@@ -353,7 +380,7 @@
             resetResources = () => {
                 resources = copyObject(resourcesTemplate);
                 resources.gold = this.state?.["Filler - 1 Starting Gold"] ?? 0;
-                if(getExploreProgress() >= 100) addResource("glasses", true);
+                if (getExploreProgress() >= 100) addResource("glasses", true);
                 view.requestUpdate("updateResources", null);
             }
 
@@ -361,9 +388,9 @@
             // Because you have to click the connect button the predictor *surely* already exists. Skill issue if you click it before the page fully loads.
             // There's nothing relevant about .predict, it's that the whole predictor is mostly one big function except for this ONE PART that gets called with state
             // And that saves me from having to fork it or something
-            if(window.Koviko) {
-                Koviko.predict = function(prediction, state) {
-                    if(Object.values(state.stats).every(stat => stat === 0)) {
+            if (window.Koviko) {
+                Koviko.predict = function (prediction, state) {
+                    if (Object.values(state.stats).every(stat => stat === 0)) {
                         state.resources.mana += (50 * (IdleLoopsAP.state?.["Filler - 50 Starting Mana"] ?? 0));
                         state.resources.gold += IdleLoopsAP.state?.["Filler - 1 Starting Gold"] ?? 0
                     }
@@ -381,34 +408,42 @@
             }
 
             // Collect checks from before this connection
-            for(const item of this.client.items.received) {
+            for (const item of this.client.items.received) {
                 this.item(item.name);
             }
 
             // Send any checks that might have been found during a disconnection
-            for(let town = 0; town <= this.goalZone; town++) {
-                for(const action of towns[town].totalActionList) {
-                    if(action.type == "progress") {
+            for (let town = 0; town <= this.goalZone; town++) {
+                for (const action of towns[town].totalActionList) {
+                    if (action.type == "progress") {
                         let level = towns[town].getLevel(action.varName);
-                        for(let i = 0; i <= level; i++) {
-                            if(bar_locations.includes(i)) {
+                        for (let i = 0; i <= level; i++) {
+                            if (bar_locations.includes(i)) {
                                 this.location(`Z${town + 1} - ${action.varName} - ${i}%`);
                             }
                         }
                     }
-                    if(action.type == "limited") {
+                    if (action.type == "limited") {
                         let checks = Math.floor(towns[town][`checked${action.varName}`] / limitedRewardRatios[action.varName]);
-                        for(let i = 1; i <= checks; i++) {
+                        for (let i = 1; i <= checks; i++) {
                             this.location(`Z${town + 1} - ${action.varName} - #${i}`);
                         }
                     }
                 }
             }
-            for(const skill in skills) {
+            for (const skill in skills) {
                 let level = getSkillLevel(skill);
-                for(let i = 1; i <= level; i++) {
-                    if(skill_locations.includes(i)) {
+                for (let i = 1; i <= level; i++) {
+                    if (skill_locations.includes(i)) {
                         this.location(`${skill} - Level ${i}`);
+                    }
+                }
+            }
+            for (const buff in buffs) {
+                let level = buffs[buff].amt;
+                for (let i = 1; i <= level; i++) {
+                    if (skill_locations.includes(i)) {
+                        this.location(`${buff} - Level ${i}`);
                     }
                 }
             }
@@ -417,7 +452,7 @@
 
         visible(action) {
             let defaultVisible = false;
-            if(action.type == "limited" && towns[action.townNum][`total${action.varName}`] > 0) {
+            if (action.type == "limited" && towns[action.townNum][`total${action.varName}`] > 0) {
                 defaultVisible = action._visible();
             }
             return defaultVisible || `Z${action.townNum + 1} - ${action.varName}` in this.state || `Z${action.townNum + 1} - ${action.varName} - Search` in this.state;
@@ -425,7 +460,7 @@
 
         unlocked(action) {
             let defaultUnlocked = false;
-            if(action.type == "limited" && towns[action.townNum][`total${action.varName}`] > 0) {
+            if (action.type == "limited" && towns[action.townNum][`total${action.varName}`] > 0) {
                 defaultUnlocked = `Z${action.townNum + 1} - ${action.varName} - Search` in this.state
             }
             return defaultUnlocked || `Z${action.townNum + 1} - ${action.varName}` in this.state;
@@ -433,13 +468,13 @@
 
         location(x) {
             const check = this.location_name_to_id?.[x] ?? false;
-            if(check) {
+            if (check) {
                 this.client.check(check);
             } else {
                 console.log('Unknown location: "' + x + '"');
             }
         }
-        
+
         /**
          * Called in order for every item rewarded, and also for every item in history on connection to catch the state up to speed.
          */
@@ -455,13 +490,13 @@
                 this.state[x] = 1;
             }
 
-            if(limitedRewardRatios?.[action]) {
-                view.updateRegular({name: action, index: +(zone.substring(1)) - 1});
+            if (limitedRewardRatios?.[action]) {
+                view.updateRegular({ name: action, index: +(zone.substring(1)) - 1 });
             }
 
-            if(zone === "Filler") {
+            if (zone === "Filler") {
                 // Starting mana and gold are handled elswehere
-                if(action === "+0.1 Game Speed") {
+                if (action === "+0.1 Game Speed") {
                     gameSpeed = 1 + (0.1 * this.state[x]);
                 }
             }
@@ -469,17 +504,17 @@
 
         async scoutRegular(el, town, varName) {
             const location_name = `Z${town + 1} - ${varName}`;
-            if(completedActions.includes(varName)) {
+            if (completedActions.includes(varName)) {
                 el.textContent = "No more checks";
                 return;
             }
             const location = this.location_name_to_id[location_name];
             let scout
-            if(location in this.scouts) {
+            if (location in this.scouts) {
                 scout = this.scouts[location];
             } else {
                 el.textContent = `Scouting...`;
-                
+
                 scout = await this.client.scout([location], 2)
                 this.scouts[location] = scout;
             }
@@ -489,21 +524,21 @@
         async scoutProgress(el, town, varName) {
             const lines = el.innerHTML.split("<br>");
             const level = towns[town].getLevel(varName);
-            if(level < 100) {
+            if (level < 100) {
                 let next = 0;
                 let i = 0;
-                while(next <= level) {
+                while (next <= level) {
                     next = bar_locations[i];
                     i++;
                 }
                 const location = this.location_name_to_id[`Z${town + 1} - ${varName} - ${next}%`];
                 let scout
-                if(location in this.scouts) {
+                if (location in this.scouts) {
                     scout = this.scouts[location];
                 } else {
                     lines[0] = `Scouting...`;
                     el.innerHTML = lines.join("<br>");
-                    
+
                     scout = await this.client.scout([location], 2)
                     this.scouts[location] = scout;
                 }
@@ -519,12 +554,12 @@
             const checks = Math.floor(towns[town][`checked${varName}`] / limitedRewardRatios[varName]);
             const location_name = `Z${town + 1} - ${varName} - #${checks + 1}`;
             let check;
-            if(!this.state?.[`Z${town + 1} - ${varName} - Search`]) {
+            if (!this.state?.[`Z${town + 1} - ${varName} - Search`]) {
                 check = `"Z${town + 1} - ${varName} - Search" needs to be found first`;
-            } else if(location_name in this.location_name_to_id) {
+            } else if (location_name in this.location_name_to_id) {
                 const location = this.location_name_to_id[location_name];
                 let scout
-                if(location in this.scouts) {
+                if (location in this.scouts) {
                     scout = this.scouts[location];
                     check = `${scout[0].receiver.name}'s "${scout[0].name}" Next`
                 } else {
@@ -546,12 +581,12 @@
             const location_name_base = `Z${town + 1} - ${varName} - Completion #`;
             let location_name;
             let i = 0;
-            while(true) {
+            while (true) {
                 location_name = `${location_name_base}${i + 1}`;
-                if(this.client.room.missingLocations.includes(this.location_name_to_id[location_name])) {
+                if (this.client.room.missingLocations.includes(this.location_name_to_id[location_name])) {
                     break;
                 }
-                if(!(location_name in this.location_name_to_id)) {
+                if (!(location_name in this.location_name_to_id)) {
                     el.textContent = "No more checks";
                     return;
                 }
@@ -559,11 +594,11 @@
             }
             const location = this.location_name_to_id[location_name];
             let scout
-            if(location in this.scouts) {
+            if (location in this.scouts) {
                 scout = this.scouts[location];
             } else {
                 el.textContent = `Scouting...`;
-                
+
                 scout = await this.client.scout([location], 2)
                 this.scouts[location] = scout;
             }
@@ -572,20 +607,20 @@
 
         async scoutSkill(el, skill) {
             const level = getSkillLevel(skill);
-            if(level < 100) {
+            if (level < 100) {
                 let next = 0;
                 let i = 0;
-                while(next <= level) {
+                while (next <= level) {
                     next = skill_locations[i];
                     i++;
                 }
                 const location = this.location_name_to_id[`${skill} - Level ${next}`];
                 let scout
-                if(location in this.scouts) {
+                if (location in this.scouts) {
                     scout = this.scouts[location];
                 } else {
                     el.textContent = `Scouting...`;
-                    
+
                     scout = await this.client.scout([location], 2)
                     this.scouts[location] = scout;
                 }
