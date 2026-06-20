@@ -5,6 +5,7 @@
 // @description  Mod for Idle Loops to integrate with AP
 // @author       Neffy
 // @include      https://lloyd-delacroix.github.io/omsi-loops/
+// @include      https://dmchurch.github.io/omsi-loops/
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // @grant        none
 // ==/UserScript==

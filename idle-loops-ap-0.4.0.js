@@ -9,7 +9,7 @@
     const name_map = {"Wander": "Wander", "Mana Pot": "Pots", "Lock": "Locks", "Buy Glasses": "BuyGlasses", "Buy Mana": "BuyMana", "Meet People": "Met", "Train Strength": "TrainStrength", "Short Quest": "SQuests", "Investigate": "Secrets", "Long Quest": "LQuests", "Throw Party": "ThrowParty", "Warrior Lessons": "WarriorLessons", "Mage Lessons": "MageLessons", "Heal The Sick": "Heal", "Fight Monsters": "Fight", "Small Dungeon": "SDungeon", "Buy Supplies": "BuySupplies", "Haggle": "Haggle", "Start Journey": "StartJourney", "Explore Forest": "Forest", "Wild Mana": "WildMana", "Herb": "Herbs", "Hunt": "Hunt", "Sit By Waterfall": "SitByWaterfall", "Old Shortcut": "Shortcut", "Talk To Hermit": "Hermit", "Practical Magic": "Practical", "Learn Alchemy": "LearnAlchemy", "Brew Potions": "BrewPotions", "Train Dexterity": "TrainDexterity", "Train Speed": "TrainSpeed", "Follow Flowers": "Flowers", "Bird Watching": "BirdWatching", "Clear Thicket": "Thicket", "Talk To Witch": "Witch", "Dark Magic": "Dark", "Dark Ritual": "Ritual", "Continue On": "ContinueOn", "Explore City": "City", "Gamble": "Gamble", "Get Drunk": "Drunk", "Sell Potions": "SellPotions", "Adventure Guild": "AdvGuild", "Gather Team": "GatherTeam", "Large Dungeon": "LDungeon", "Crafting Guild": "CraftGuild", "Apprentice": "Apprentice", "Mason": "Mason", "Architect": "Architect", "Read Books": "ReadBooks", "Buy Pickaxe": "BuyPickaxe", "Start Trek": "StartTrek", "Climb Mountain": "Mountain", "Mana Geyser": "Geysers", "Decipher Runes": "Runes", "Chronomancy": "Chronomancy", "Pyromancy": "Pyromancy", "Explore Cavern": "Cavern", "Soulstone": "MineSoulstones", "Hunt Trolls": "HuntTrolls", "Check Walls": "Illusions", "Artifact": "Artifacts", "Face Judgement": "FaceJudgement", "Combat": "Combat", "Magic": "Magic", "Alchemy": "Alchemy", "Imbue Mind": "Imbuement"}
 
     const bar_locations = [1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 95, 99, 100];
-    const skill_locations = [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+    const skill_locations = [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300];
     const limitedRewardRatios = {
         "Pots": 10,
         "Locks": 10,
@@ -43,25 +43,66 @@
         state = {};
         scouts = {};
         location_name_to_id = location_name_to_id;
+        newUI = false;
 
         /**
          * Called on script load, to inject the AP connect form
          */
         load() {
-            // Some light CSS to deal with adding the connect form, but also now it's more centered than it ever was!
-            const menu = document.getElementById("menu")
-            menu.style.width = "1px";
-            menu.style.display = "inline-flex";
+            // Some light CSS. We have two UIs to handle, the original and a responsive one, determined with html.responsive
+            // Most of the changes were coincidentally the same ones the responsive UI made, for me it was to make space for
+            // the connect form, but it also just looks better, so we don't have to do them on html.responsive 
 
+            // i miss SCSS pensive
+            const css = document.createElement("style");
+            css.textContent = `
+            html:not(.responsive) #menu {
+                display: inline-flex;
+                width: 1px;
+                }
+            #APconnect {
+                display: inline-flex;
+                position: fixed;
+                top: 15px;
+                right: 0;
+                width: 500px;
+                align-items: center;
+            }
+            #actionLogTitle {
+                cursor: pointer;
+            }
+            #actionLogContainer #apSeparator {
+                color: black;
+            }
+            #actionLogContainer:not(.ap) #actionLogTitle {
+                color: black;
+            }
+            #actionLogContainer:not(.ap) #apTitle {
+                color: gray;
+            }
+            #actionLogContainer:not(.ap) #actionLog {
+                display: block;
+            }
+            #actionLogContainer:not(.ap) #apLog {
+                display: none !important;
+            }
+            #actionLogContainer.ap #actionLogTitle {
+                color: gray;
+            }
+            #actionLogContainer.ap #apTitle {
+                color: black;
+            }
+            #actionLogContainer.ap #actionLog {
+                display: none;
+            }
+            #actionLogContainer.ap #apLog {
+                display: block;
+            }
+            `
+            document.head.appendChild(css);
 
             const connect = document.createElement("form");
             connect.id = "APconnect";
-            connect.style.display = "inline-flex";
-            connect.style.position = "fixed";
-            connect.style.top = "15px";
-            connect.style.right = 0;
-            connect.style.width = "500px";
-            connect.style.alignItems = "center";
 
             const apDefaults = {
                 host: localStorage.getItem("APhost") || "archipelago.gg",
@@ -113,7 +154,6 @@
             }
             load();
             if(!stop) pauseGame();
-            restart();
             if(first_load) {
                 totalOfflineMs = this.offlineTime;
             }
@@ -126,19 +166,37 @@
          * Called after a successful connection but before data from the connection is processed.
          */
         async setup() {
-            const logElement = document.createElement("div");
-            logElement.id = "ap-log";
-            logElement.style.width = "535px";
-            logElement.style.maxHeight = "591px";
-            logElement.style.overflowY = "auto";
-            logElement.innerHTML = "<div class=\"large bold\" style=\"width:100%;text-align:center;\">AP Log</div>";
-            const townColumn = document.getElementById("townColumn");
-            townColumn.parentNode.insertBefore(logElement, townColumn.nextSibling);
+            const actionlogTitle = document.querySelector("#actionLogTitle");
+            this.newUI = actionlogTitle !== null;
+            
+            const logElement = document.createElement("ul");
+            logElement.id = "apLog";
+            logElement.style.overflowY = "scroll";
+
+            if (this.newUI) {
+                const actionLogContainer = document.getElementById("actionLogContainer");
+                const logTitle = document.createElement("span");
+                logTitle.innerHTML = " <span id=\"apSeparator\">|</span> <span id=\"apTitle\">AP Log</span>";
+                actionLogTitle.appendChild(logTitle);
+                actionLogTitle.addEventListener("click", () => {
+                    actionLogContainer.classList.toggle("ap");
+                });
+                actionLogContainer.appendChild(logElement);
+            } else {
+                const container = document.createElement("div");
+                container.style.width = "535px";
+                container.style.maxHeight = "591px";
+                container.style.overflow = "auto";
+                container.innerHTML = "<div class=\"large bold\" style=\"width:100%;text-align:center;\">AP Log</div>";
+                container.appendChild(logElement);
+                const townColumn = document.getElementById("townColumn");
+                townColumn.parentNode.insertBefore(container, townColumn.nextSibling);
+            }
 
             this.client.messages.on("message", (content) => {
-                const message = document.createElement("div");
+                const message = document.createElement("li");
                 message.textContent = content;
-                logElement.appendChild(message);
+                logElement.insertBefore(message, logElement.firstChild);
             });
 
             this.client.items.on("itemsReceived", (items, index) => {
@@ -152,6 +210,39 @@
             this.offlineTime = data.bonus;
         }
         post_load() {
+
+            // If the Predictor is installed, hook into it to handle starting filler
+            // Because you have to click the connect button the predictor *surely* already exists. Skill issue if you click it before the page fully loads.
+            // There's nothing relevant about .predict, it's that the whole predictor is mostly one big function except for this ONE PART that gets called with state
+            // And that saves me from having to fork it or something
+
+            // This bit is at the start of post_load so for the new UI we disable the web worker before all our hooking causes it to freak out.
+            if (Koviko) {
+                const predict = function (prediction, state) {
+                    if (Object.values(state.stats).every(stat => stat === 0)) {
+                        state.resources.mana += (50 * (IdleLoopsAP.state?.["Filler - 50 Starting Mana"] ?? 0));
+                        state.resources.gold += IdleLoopsAP.state?.["Filler - 1 Starting Gold"] ?? 0
+                    }
+                    // Update the amount of ticks necessary to complete the action, but only once at the start of the action
+                    prediction.updateTicks(prediction.action, state.stats, state);
+
+                    // Perform all ticks in succession
+                    for (let ticks = 0; ticks < prediction.ticks(); ticks++) {
+                        state.resources.mana--;
+                        if (state.resources.mana >= 0) {
+                            if (!this.tick(prediction, state)) break;
+                        }
+                    }
+                }
+                if (Koviko.predictor) {
+                    Koviko.predictor.predict = predict;
+                    console.log("AP: Forcing local predictor, ignore next error")
+                    Koviko.predictor.handleWorkerMessage({data: {type: "error"}}) 
+                } else {
+                    Koviko.predict = predict;
+                }
+            }
+
             // Idle Loops scatters *all* of its stuff all around global scope
             // but in a way that doesn't show up in `window`
             // i'd really prefer it to be obvious when i'm using global scope
@@ -227,69 +318,9 @@
                     }
                 }
 
-                towns[town] = new Proxy(towns[town], {
-                    get: (target, prop, receiver) => {
-                        // Item: Number of Limited Actions
-                        // Overwrite whatever the game thinks it has with the number of checks of this type recieved
-                        if (prop.startsWith("good")) {
-                            const name = prop.substring(4);
-                            if (!name.startsWith("Temp")) {
-                                return this.state?.[`Z${town + 1} - ${name}`] || 0;
-                            }
-                        }
-
-                        return Reflect.get(target, prop, receiver);
-                    },
-                    set: (target, prop, value, receiver) => {
-
-                        // Location: Gaining a lootable Limited Action
-                        // The game function that rewards one uses ++, which means it'll read from the proxy
-                        // and give a wrong answer, so we need to calculate the # manually
-
-                        // Actually i really don't have to do this, all it does is give a better location name
-                        // (i.e. "...Pots - #1", "...Pots - #2" vs "...Pots - #10", "...Pots - #20")
-                        // Whatever i realised that after finishing
-                        if (value > 0 && prop.startsWith("good")) {
-                            const name = prop.substring(4);
-                            if (!name.startsWith("Temp")) {
-                                const rewardRatio = limitedRewardRatios[name];
-                                this.location(`Z${town + 1} - ${name} - #${Math.floor(target['checked' + name] / rewardRatio)}`);
-                                return true;
-                            }
-                        }
-
-                        // Location: Gaining a Progress Bar %
-                        // We could get this by overwriting town.finishProgress, but right now i prefer to do as much as possible via proxies
-                        // Just documenting alternate solutions to get a head start later if this ends up broken
-                        if (prop.startsWith("exp")) {
-                            const name = prop.substring(3);
-                            const prevLevel = target.getLevel(name);
-                            Reflect.set(target, prop, value, receiver);
-                            const newLevel = target.getLevel(name);
-                            for (let i = prevLevel + 1; i <= newLevel; i++) {
-                                if (bar_locations.includes(i)) {
-                                    this.location(`Z${town + 1} - ${name} - ${i}%`);
-                                }
-                            }
-                            return true;
-                        }
-
-                        // Location: Finishing a Multipart action
-                        // The game doesn't seem to store highest completion so RIP to sending missed checks on reconnection
-                        // At least doing your highest completion again is trivial
-                        if (value > 0 && prop.endsWith("LoopCounter")) {
-                            const name = prop.substring(0, prop.length - 11);
-                            // Silly way to not send checks for buffs, just don't put them in segments
-                            if (name in segments) {
-                                this.location(`Z${town + 1} - ${name} - Completion #${value / segments[name]}`);
-                            }
-                        }
-
-                        return Reflect.set(target, prop, value, receiver);
-                    }
-                });
+                
                 // We need to add a line half way through this function, annoying that means copying a whole function
-                towns[town].finishRegular = function (varName, rewardRatio, rewardFunc) {
+                const finishRegular = function (varName, rewardRatio, rewardFunc) {
                     // error state, negative numbers.
                     if (this[`total${varName}`] - this[`checked${varName}`] < 0) {
                         this[`checked${varName}`] = this[`total${varName}`];
@@ -311,7 +342,7 @@
                             }
                         } else {
                             // Alert() seems a better place for this message, but i don't want someone to put like 100 pots in the action list (or have repeat last action on) and get 100 alerts
-                            const logElement = document.getElementById("ap-log");
+                            const logElement = document.getElementById("apLog");
                             const message = document.createElement("div");
                             message.textContent = `Error: You need "Z${this.index + 1} - ${varName} - Search" to check unchecked ${varName}`;
                             logElement.appendChild(message);
@@ -322,22 +353,101 @@
                     }
                     view.requestUpdate("updateRegular", { name: varName, index: this.index });
                 }
+
+                towns[town] = new Proxy(towns[town], {
+                    get: (target, prop, receiver) => {
+                        // Item: Number of Limited Actions
+                        // Overwrite whatever the game thinks it has with the number of checks of this type recieved
+                        if (typeof prop === "string" && prop.startsWith("good")) {
+                            const name = prop.substring(4);
+                            if (!name.startsWith("Temp")) {
+                                return this.state?.[`Z${town + 1} - ${name}`] || 0;
+                            }
+                        } else if (typeof prop === "string" && prop === "finishRegular") {
+                            return finishRegular.bind(receiver);
+                        }
+                        return Reflect.get(target, prop, receiver);
+                    },
+                    set: (target, prop, value, receiver) => {
+
+                        // Location: Gaining a lootable Limited Action
+                        // The game function that rewards one uses ++, which means it'll read from the proxy
+                        // and give a wrong answer, so we need to calculate the # manually
+
+                        // Actually i really don't have to do this, all it does is give a better location name
+                        // (i.e. "...Pots - #1", "...Pots - #2" vs "...Pots - #10", "...Pots - #20")
+                        // Whatever i realised that after finishing
+                        if (value > 0 && typeof prop === "string" && prop.startsWith("good")) {
+                            const name = prop.substring(4);
+                            if (!name.startsWith("Temp")) {
+                                const rewardRatio = limitedRewardRatios[name];
+                                this.location(`Z${town + 1} - ${name} - #${Math.floor(target['checked' + name] / rewardRatio)}`);
+                                return true;
+                            }
+                        }
+
+                        // Location: Gaining a Progress Bar %
+                        // We could get this by overwriting town.finishProgress, but right now i prefer to do as much as possible via proxies
+                        // Just documenting alternate solutions to get a head start later if this ends up broken
+                        if (typeof prop === "string" && prop.startsWith("exp")) {
+                            const name = prop.substring(3);
+                            const prevLevel = target.getLevel(name);
+                            Reflect.set(target, prop, value, receiver);
+                            const newLevel = target.getLevel(name);
+                            for (let i = prevLevel + 1; i <= newLevel; i++) {
+                                if (bar_locations.includes(i)) {
+                                    this.location(`Z${town + 1} - ${name} - ${i}%`);
+                                }
+                            }
+                            return true;
+                        }
+
+                        // Location: Finishing a Multipart action
+                        // The game doesn't seem to store highest completion so RIP to sending missed checks on reconnection
+                        // At least doing your highest completion again is trivial
+                        if (value > 0 && typeof prop === "string" && prop.endsWith("LoopCounter")) {
+                            const name = prop.substring(0, prop.length - 11);
+                            // Silly way to not send checks for buffs, just don't put them in segments
+                            if (name in segments) {
+                                this.location(`Z${town + 1} - ${name} - Completion #${value / segments[name]}`);
+                            }
+                        }
+
+                        return Reflect.set(target, prop, value, receiver);
+                    }
+                });
             }
 
             for (const skill in skills) {
-                skills[skill] = new Proxy(skills[skill], {
-                    set: (target, prop, value, receiver) => {
+                if (this.newUI) {
+                    skills[skill].levelExp.addExp = function(exp) {
                         const prevLevel = getSkillLevel(skill);
-                        const success = Reflect.set(target, prop, value, receiver);
+                        const success = LevelExp.prototype.addExp.call(this, exp);
                         const newLevel = getSkillLevel(skill);
                         for (let i = prevLevel + 1; i <= newLevel; i++) {
                             if (skill_locations.includes(i)) {
                                 window.IdleLoopsAP.location(`${skill} - Level ${i}`);
                             }
                         }
-                        return success;
                     }
-                });
+                } else {
+                    skills[skill] = new Proxy(skills[skill], {
+                        set: (target, prop, value, receiver) => {
+                            if (prop !== "exp") {
+                                return Reflect.set(target, prop, value, receiver);
+                            }
+                            const prevLevel = getSkillLevel(skill);
+                            const success = Reflect.set(target, prop, value, receiver);
+                            const newLevel = getSkillLevel(skill);
+                            for (let i = prevLevel + 1; i <= newLevel; i++) {
+                                if (skill_locations.includes(i)) {
+                                    window.IdleLoopsAP.location(`${skill} - Level ${i}`);
+                                }
+                            }
+                            return success;
+                        }
+                    });
+                }
 
                 const el = document.querySelector(`#skill${skill}Container.showthat`);
                 const hover = el.querySelector(".showthis");
@@ -389,29 +499,6 @@
                 view.requestUpdate("updateResources", null);
             }
 
-            // If the Predictor is installed, hook into it to handle starting filler
-            // Because you have to click the connect button the predictor *surely* already exists. Skill issue if you click it before the page fully loads.
-            // There's nothing relevant about .predict, it's that the whole predictor is mostly one big function except for this ONE PART that gets called with state
-            // And that saves me from having to fork it or something
-            if (window.Koviko) {
-                Koviko.predict = function (prediction, state) {
-                    if (Object.values(state.stats).every(stat => stat === 0)) {
-                        state.resources.mana += (50 * (IdleLoopsAP.state?.["Filler - 50 Starting Mana"] ?? 0));
-                        state.resources.gold += IdleLoopsAP.state?.["Filler - 1 Starting Gold"] ?? 0
-                    }
-                    // Update the amount of ticks necessary to complete the action, but only once at the start of the action
-                    prediction.updateTicks(prediction.action, state.stats, state);
-
-                    // Perform all ticks in succession
-                    for (let ticks = 0; ticks < prediction.ticks(); ticks++) {
-                        state.resources.mana--;
-                        if (state.resources.mana >= 0) {
-                            if (!this.tick(prediction, state)) break;
-                        }
-                    }
-                }
-            }
-
             // Collect checks from before this connection
             for (const item of this.client.items.received) {
                 this.item(item.name);
@@ -447,9 +534,7 @@
             for (const buff in buffs) {
                 let level = buffs[buff].amt;
                 for (let i = 1; i <= level; i++) {
-                    if (skill_locations.includes(i)) {
-                        this.location(`${buff} - Level ${i}`);
-                    }
+                    this.location(`${buff} - Level ${i}`);
                 }
             }
         }
@@ -615,7 +700,7 @@
 
         async scoutSkill(el, skill) {
             const level = getSkillLevel(skill);
-            if (level < 100) {
+            if (level < skill_locations[skill_locations.length - 1]) {
                 let next = 0;
                 let i = 0;
                 while (next <= level) {
