@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Idle Loops AP
 // @namespace    http://tampermonkey.net/
-// @version      0.4.0
+// @version      0.4.1
 // @description  Mod for Idle Loops to integrate with AP
 // @author       Neffy
 // @include      https://lloyd-delacroix.github.io/omsi-loops/
@@ -11,7 +11,7 @@
 // ==/UserScript==
 function loadScript(id, src) {
 	const script = document.createElement('script');
-	const version = '0.4.0';
+	const version = '0.4.1';
 	script.id = id;
 	script.src = `${src}-${version}.js`;
 	script.setAttribute('crossorigin', 'anonymous');
