@@ -56,6 +56,7 @@
         });
         scouts = {};
         location_name_to_id = location_name_to_id;
+        predictor = false;
         newUI = false;
 
         /**
@@ -217,7 +218,7 @@
                 for (const item of items) {
                     this.item(item.name);
                 }
-                this.predictor?.cache.reset();
+                if(this.predictor) this.predictor.cache.reset();
                 view.updateNextActions();
             });
 
@@ -517,8 +518,9 @@
             for (const item of this.client.items.received) {
                 this.item(item.name, true);
             }
-
-            this.predictor?.cache.reset();
+            if (this.predictor) {
+                this.predictor?.cache.reset();
+            }
             view.updateNextActions();
 
             // Send any checks that might have been found during a disconnection
@@ -534,7 +536,7 @@
                     }
                     if (action.type == "limited") {
                         if(action.varName in limitedActions) {
-                            let checks = Math.floor(towns[town][`checked${action.varName}`] / limitedActions[action.varName]);
+                            let checks = Math.floor(towns[town][`checked${action.varName}`] / limitedActions[action.varName].ratio);
                             for (let i = 1; i <= checks; i++) {
                                 this.location(`Z${town + 1} - ${action.varName} - #${i}`);
                             }
