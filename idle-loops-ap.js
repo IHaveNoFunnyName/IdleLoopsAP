@@ -166,7 +166,9 @@
                 first_load = true;
             }
             load();
-            if(!stop) pauseGame();
+            if((!stop) && typeof stop !== "function" || (!gameIsStopped && typeof gameIsStopped !== "undefined")) {
+                pauseGame();
+            }
             if(first_load) {
                 totalOfflineMs = this.offlineTime;
             }
@@ -215,6 +217,8 @@
                 for (const item of items) {
                     this.item(item.name);
                 }
+                this.predictor?.cache.reset();
+                view.updateNextActions();
             });
 
             const data = await this.client.players.self.fetchSlotData();
@@ -229,7 +233,14 @@
             // And that saves me from having to fork it or something
 
             // This bit is at the start of post_load so for the new UI we disable the web worker before all our hooking causes it to freak out.
-            if (Koviko) {
+            if (typeof Koviko !== "undefined") {
+                if (Koviko.predictor) {
+                    this.predictor = Koviko.predictor;
+                    console.log("AP: Forcing local predictor, ignore next error")
+                    Koviko.predictor.handleWorkerMessage({data: {type: "error"}}) 
+                } else {
+                    this.predictor = Koviko;
+                }
                 const predict = function (prediction, state) {
                     if (Object.values(state.stats).every(stat => stat === 0)) {
                         state.resources.mana += (50 * IdleLoopsAP.state["Filler - 50 Starting Mana"]);
@@ -246,13 +257,7 @@
                         }
                     }
                 }
-                if (Koviko.predictor) {
-                    Koviko.predictor.predict = predict;
-                    console.log("AP: Forcing local predictor, ignore next error")
-                    Koviko.predictor.handleWorkerMessage({data: {type: "error"}}) 
-                } else {
-                    Koviko.predict = predict;
-                }
+                this.predictor.predict = predict;
             }
 
             // Idle Loops scatters *all* of its stuff all around global scope
@@ -513,6 +518,9 @@
                 this.item(item.name, true);
             }
 
+            this.predictor?.cache.reset();
+            view.updateNextActions();
+
             // Send any checks that might have been found during a disconnection
             for (let town = 0; town <= this.goalZone; town++) {
                 for (const action of towns[town].totalActionList) {
@@ -689,7 +697,6 @@
                 } else if (action === "Progressive Lootable") {
                     const effective = this.lastEffectiveLimited();
                     if(!old) this.log(`Progressive Lootable had the effect of an extra ${name_map_reverse[effective]}`);
-                    console.log(effective);
                     view.updateRegular({ name: effective, index: limitedActions[effective].town});
                 }
             }
