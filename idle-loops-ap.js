@@ -518,9 +518,7 @@
             for (const item of this.client.items.received) {
                 this.item(item.name, true);
             }
-            if (this.predictor) {
-                this.predictor?.cache.reset();
-            }
+            if (this.predictor) this.predictor.cache.reset();
             view.updateNextActions();
 
             // Send any checks that might have been found during a disconnection
@@ -587,6 +585,10 @@
 
             for (const limited in limitedActions) {
 
+                if(limitedActions[limited].town > this.goalZone) {
+                    continue;
+                }
+
                 const limitedObj = limitedActions[limited];
                 if(varName === limited){
                     extra -= Math.max(0, limitedObj.max - this.state[`Z${limitedObj.town + 1} - ${limited}`]);
@@ -627,6 +629,10 @@
             }
 
             for (const limited in limitedActions) {
+
+                if(limitedActions[limited].town > this.goalZone) {
+                    continue;
+                }
 
                 const limitedObj = limitedActions[limited];
                 extra -= Math.max(0, limitedObj.max - this.state[`Z${limitedObj.town + 1} - ${limited}`]);

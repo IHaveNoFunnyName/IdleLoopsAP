@@ -585,6 +585,10 @@
 
             for (const limited in limitedActions) {
 
+                if(limitedActions[limited].town > this.goalZone) {
+                    continue;
+                }
+
                 const limitedObj = limitedActions[limited];
                 if(varName === limited){
                     extra -= Math.max(0, limitedObj.max - this.state[`Z${limitedObj.town + 1} - ${limited}`]);
@@ -625,6 +629,10 @@
             }
 
             for (const limited in limitedActions) {
+
+                if(limitedActions[limited].town > this.goalZone) {
+                    continue;
+                }
 
                 const limitedObj = limitedActions[limited];
                 extra -= Math.max(0, limitedObj.max - this.state[`Z${limitedObj.town + 1} - ${limited}`]);
