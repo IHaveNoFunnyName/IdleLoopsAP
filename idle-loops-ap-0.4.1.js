@@ -665,7 +665,11 @@
         location(x) {
             const check = this.location_name_to_id?.[x] ?? false;
             if (check) {
-                this.client.check(check);
+                try {
+                    this.client.check(check);
+                } catch (error) {
+                    console.error('Error checking location:', error.message);
+                }
             } else {
                 console.log('Unknown location: "' + x + '"');
             }
