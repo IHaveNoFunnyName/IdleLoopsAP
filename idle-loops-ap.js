@@ -700,9 +700,7 @@
                     }
                 }
                 view.updateRegular({ name: action, index: +(zone.substring(1)) - 1 });
-            }
-
-            if (zone === "Filler") {
+            } else if (zone === "Filler") {
                 // Starting mana and gold are handled elsewhere
                 if (action === "+0.1 Game Speed") {
                     gameSpeed = 1 + (0.1 * this.state[x]);
@@ -711,6 +709,15 @@
                     if (!old) this.log(`Progressive Lootable had the effect of an extra ${name_map_reverse[effective]}`);
                     view.updateRegular({ name: effective, index: limitedActions[effective].town });
                 }
+            } else if (action === "ThrowParty") {
+                const unhideMet = document.createElement("style");
+                unhideMet.innerHTML = `#infoContainerMet:not(.user-hidden) {
+                    display: contents !important;
+                }
+                :root.editing-hidden-vars #infoContainerMet.user-hidden {
+                    display: contents !important;
+                }`;
+                document.head.appendChild(unhideMet);
             }
         }
 
