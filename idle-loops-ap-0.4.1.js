@@ -167,7 +167,7 @@
                 first_load = true;
             }
             load();
-            if ((!stop) && typeof stop !== "function" || (!gameIsStopped && typeof gameIsStopped !== "undefined")) {
+            if ((!stop) && typeof stop !== "function" || (typeof gameIsStopped !== "undefined" && !gameIsStopped)) {
                 pauseGame();
             }
             if (first_load) {
