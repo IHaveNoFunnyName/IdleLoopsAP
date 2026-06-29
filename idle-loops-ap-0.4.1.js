@@ -337,7 +337,7 @@
                 }
 
 
-                // We need to add a line half way through this function, annoying that means copying a whole function
+                // We rewrote the second half of this function
                 const finishRegular = function (varName, rewardRatio, rewardFunc) {
                     // error state, negative numbers.
                     if (this[`total${varName}`] - this[`checked${varName}`] < 0) {
@@ -347,22 +347,20 @@
                         console.log("Error state fixed");
                     }
 
-                    // only checks unchecked items 
-                    // IF there are unchecked items 
-                    // AND the user has not disabled checking unchecked items OR there are no checked items left
+                    // Add player having "- Search" to vanilla check lootable logic/behaviour (minus the commented line)
+                    // Add an early return so it can flow to looting lootables in any other case
                     const searchToggler = document.getElementById(`searchToggler${varName}`);
-                    if (this[`total${varName}`] - this[`checked${varName}`] > 0 && ((searchToggler && !searchToggler.checked) || this[`goodTemp${varName}`] <= 0)) {
-                        if (`Z${this.index + 1} - ${varName} - Search` in window.IdleLoopsAP.state) {
+                    if (window.IdleLoopsAP.state[`Z${this.index + 1} - ${varName} - Search`] && this[`total${varName}`] - this[`checked${varName}`] > 0 && ((searchToggler && !searchToggler.checked) || this[`goodTemp${varName}`] <= 0)) {
                             this[`checked${varName}`]++;
                             if (this[`checked${varName}`] % rewardRatio === 0) {
                                 //this[`lootFrom${varName}`] += rewardFunc();
                                 this[`good${varName}`]++;
                             }
-                        } else {
-                            // Alert() seems a better place for this message, but i don't want someone to put like 100 pots in the action list (or have repeat last action on) and get 100 alerts
-                            window.IdleLoopsAP.log(`Error: You need "Z${this.index + 1} - ${name_map_reverse[varName]} - Search" to check unchecked ${name_map_reverse[varName]}s`);
-                        }
-                    } else if (this[`goodTemp${varName}`] > 0) {
+                        view.requestUpdate("updateRegular", { name: varName, index: this.index });
+                        return;
+                    }
+
+                    if (this[`goodTemp${varName}`] > 0) {
                         this[`goodTemp${varName}`]--;
                         this[`lootFrom${varName}`] += rewardFunc();
                     }
