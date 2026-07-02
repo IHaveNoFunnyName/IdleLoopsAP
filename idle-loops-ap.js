@@ -453,7 +453,7 @@
                             const success = Reflect.set(target, prop, value, receiver);
                             const newLevel = getSkillLevel(skill);
                             for (let i = prevLevel + 1; i <= newLevel; i++) {
-                                if (skill_locations.includes(i)) {
+                                if (location_name_to_id[`${skill} - Level ${i}`]) {
                                     window.IdleLoopsAP.location(`${skill} - Level ${i}`);
                                 }
                             }
@@ -478,7 +478,7 @@
                         const success = Reflect.set(target, prop, value, receiver);
                         const newLevel = value;
                         for (let i = prevLevel + 1; i <= newLevel; i++) {
-                            if (skill_locations.includes(i)) {
+                            if (location_name_to_id[`${buff} - Level ${i}`]) {
                                 window.IdleLoopsAP.location(`${buff} - Level ${i}`);
                             }
                         }
@@ -543,7 +543,7 @@
             for (const skill in skills) {
                 let level = getSkillLevel(skill);
                 for (let i = 1; i <= level; i++) {
-                    if (skill_locations.includes(i)) {
+                    if (location_name_to_id[`${skill} - Level ${i}`]) {
                         this.location(`${skill} - Level ${i}`);
                     }
                 }
@@ -551,7 +551,9 @@
             for (const buff in buffs) {
                 let level = buffs[buff].amt;
                 for (let i = 1; i <= level; i++) {
-                    this.location(`${buff} - Level ${i}`);
+                    if (location_name_to_id[`${buff} - Level ${i}`]) {
+                        this.location(`${buff} - Level ${i}`);
+                    }
                 }
             }
         }
