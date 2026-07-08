@@ -79,40 +79,9 @@
                 position: fixed;
                 top: 15px;
                 right: 0;
-                width: 500px;
+                width: 440px;
                 align-items: center;
-            }
-            #actionLogTitle {
-                cursor: pointer;
-            }
-            body.t-dark #actionLogContainer #apSeparator {
-                color: white;
-            }
-            #actionLogContainer:not(.ap) #apTitle {
-                color: gray;
-            }
-            #actionLogContainer:not(.ap) #actionLog {
-                display: block;
-            }
-            #actionLogContainer:not(.ap) #apLog {
-                display: none !important;
-            }
-            #actionLogContainer.ap #actionLogTitle {
-                color: gray;
-            }
-            #actionLogContainer.ap #apTitle {
-                color: black;
-            }
-            body.t-dark #actionLogContainer.ap #apTitle {
-                color: white;
-            }
-            #actionLogContainer.ap #actionLog {
-                display: none;
-            }
-            #actionLogContainer.ap #apLog {
-                display: block;
-            }
-            `
+            }`
             document.head.appendChild(css);
 
             const connect = document.createElement("form");
@@ -138,10 +107,10 @@
             });
 
             connect.innerHTML = `
-                <span>Host:&nbsp;</span><input type="text" id="APhost" value="${apDefaults.host}" required style="width:50%;cursor:initial;">
-                <span>&nbsp;Port:&nbsp;</span><input type="number" id="APport" value="${apDefaults.port}" required style="width:25%;cursor:initial;">
-                <span>&nbsp;Name:&nbsp;</span><input type="text" id="APslotName" value="${apDefaults.slotName}" required style="width:50%;cursor:initial;">
-                <button type="submit" style="padding:1px 10px">Connect</button>
+                <span>Host:&nbsp;</span><input type="text" id="APhost" value="${apDefaults.host}" required style="width:20%;cursor:initial;">
+                <span>&nbsp;Port:&nbsp;</span><input type="number" id="APport" value="${apDefaults.port}" required style="width:10%;cursor:initial;">
+                <span>&nbsp;Name:&nbsp;</span><input type="text" id="APslotName" value="${apDefaults.slotName}" required style="width:20%;cursor:initial;">
+                <button class="button" type="submit">Connect</button>
             `;
 
             const manaDisplay = document.getElementById("trackedResources");
@@ -182,6 +151,47 @@
          * Called after a successful connection but before data from the connection is processed.
          */
         async setup() {
+            const css = document.createElement("style");
+            css.textContent = 
+            `#actionLogTitle {
+                cursor: pointer;
+            }
+            body.t-dark #actionLogContainer #apSeparator {
+                color: white;
+            }
+            #actionLogContainer #apSeparator {
+                color: black;
+            }
+            #actionLogContainer:not(.ap) #apTitle {
+                color: gray;
+            }
+            #actionLogContainer:not(.ap) #actionLog {
+                display: block;
+            }
+            #actionLogContainer:not(.ap) #apLog, #actionLogContainer:not(.ap) #apMessage {
+                display: none !important;
+            }
+            #actionLogContainer.ap #actionLogTitle {
+                color: gray;
+            }
+            #actionLogContainer.ap #apTitle {
+                color: black;
+            }
+            body.t-dark #actionLogContainer.ap #apTitle {
+                color: white;
+            }
+            #actionLogContainer.ap #actionLog {
+                display: none;
+            }
+            #actionLogContainer.ap #apLog, #actionLogContainer.ap #apMessage {
+                display: block;
+            }
+            [id^="infoContainer"]:not(.ap-search) span:has(+[id^="unchecked"]), [id^="infoContainer"]:not(.ap-search) [id^="unchecked"] {
+                color: gray;
+                text-decoration: line-through;
+            }`
+            document.head.appendChild(css);
+
             const actionlogTitle = document.querySelector("#actionLogTitle");
             this.newUI = actionlogTitle !== null;
 
@@ -189,6 +199,38 @@
             this.logElement = logElement;
             logElement.id = "apLog";
             logElement.style.overflowY = "scroll";
+
+            const messageElement = document.createElement("div");
+            messageElement.id = "apMessage";
+            messageElement.style.display = "flex";
+            messageElement.style.paddingLeft = "40px";
+            const messageInput = document.createElement("input");
+            messageInput.type = "text";
+            messageInput.style.cursor = "initial";
+            messageInput.style.flexGrow = "1";
+            messageInput.style.marginRight = "10px";
+            messageInput.id = "apMessageInput";
+            const messageSend = document.createElement("button");
+            messageSend.className = "button";
+            messageSend.id = "apMessageSend";
+            messageSend.textContent = "Send";
+
+            const send = () => {
+                const input = document.getElementById("apMessageInput");
+                if (input.value.length > 0) {
+                    window.IdleLoopsAP.client.messages.say(input.value);
+                    input.value = "";
+                }
+            }
+            messageSend.addEventListener("click", send);
+            messageInput.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") {
+                    send();
+                }
+            });
+            
+            messageElement.appendChild(messageInput);
+            messageElement.appendChild(messageSend);
 
             if (this.newUI) {
                 const actionLogContainer = document.getElementById("actionLogContainer");
@@ -198,6 +240,7 @@
                 actionLogTitle.addEventListener("click", () => {
                     actionLogContainer.classList.toggle("ap");
                 });
+                actionLogContainer.appendChild(messageElement);
                 actionLogContainer.appendChild(logElement);
             } else {
                 const container = document.createElement("div");
@@ -205,6 +248,7 @@
                 container.style.maxHeight = "591px";
                 container.style.overflow = "auto";
                 container.innerHTML = "<div class=\"large bold\" style=\"width:100%;text-align:center;\">AP Log</div>";
+                container.appendChild(messageElement);
                 container.appendChild(logElement);
                 const townColumn = document.getElementById("townColumn");
                 townColumn.parentNode.insertBefore(container, townColumn.nextSibling);
@@ -697,6 +741,11 @@
                     if (lastEffective && lastEffective !== action) {
                         if (!old) this.log(`Due to Progressive Lootables, ${x} has the effect of adding an extra ${name_map_reverse[lastEffective]} instead`);
                         view.updateRegular({ name: lastEffective, index: +(zone.substring(1)) - 1 });
+                    }
+                } else if (rest[0] === "Search") {
+                    const el = document.querySelector(`#infoContainer${action}`);
+                    if (el) {
+                        el.classList.add("ap-search");
                     }
                 }
                 view.updateRegular({ name: action, index: +(zone.substring(1)) - 1 });
