@@ -79,8 +79,12 @@
                 position: fixed;
                 top: 15px;
                 right: 0;
-                width: 440px;
                 align-items: center;
+                width: 430px;
+            }
+            #APconnect button {
+                min-width: 66px;
+                margin-top: 6px;
             }`
             document.head.appendChild(css);
 
@@ -90,7 +94,8 @@
             const apDefaults = {
                 host: localStorage.getItem("APhost") || "archipelago.gg",
                 port: localStorage.getItem("APport") || "",
-                slotName: localStorage.getItem("APslotName") || ""
+                slotName: localStorage.getItem("APslotName") || "",
+                password: localStorage.getItem("APpassword") || ""
             };
 
             connect.addEventListener("submit", (e) => {
@@ -99,18 +104,26 @@
                 const host = connect.querySelector("#APhost").value;
                 const port = connect.querySelector("#APport").value;
                 const slotName = connect.querySelector("#APslotName").value;
+                const password = connect.querySelector("#APpassword").value;
                 localStorage.setItem("APhost", host);
                 localStorage.setItem("APport", port);
                 localStorage.setItem("APslotName", slotName);
+                localStorage.setItem("APpassword", password);
 
-                this.connect(host, port, slotName);
+                const options = {};
+                if (password) {
+                    options.password = password;
+                }
+
+                this.connect(host, port, slotName, options);
             });
 
             connect.innerHTML = `
-                <span>Host:&nbsp;</span><input type="text" id="APhost" value="${apDefaults.host}" required style="width:20%;cursor:initial;">
-                <span>&nbsp;Port:&nbsp;</span><input type="number" id="APport" value="${apDefaults.port}" required style="width:10%;cursor:initial;">
-                <span>&nbsp;Name:&nbsp;</span><input type="text" id="APslotName" value="${apDefaults.slotName}" required style="width:20%;cursor:initial;">
-                <button class="button" type="submit">Connect</button>
+                <input type="text" id="APhost" value="${apDefaults.host}" placeholder="Host" title="Host" required style="width:50%;cursor:initial;">&nbsp;
+                <input type="number" id="APport" value="${apDefaults.port}" placeholder="Port" title="Port" required style="width:25%;cursor:initial;">&nbsp;
+                <input type="text" id="APslotName" value="${apDefaults.slotName}" placeholder="Slot Name" title="Slot Name" required style="width:50%;cursor:initial;">&nbsp;
+                <input type="password" id="APpassword" value="${apDefaults.password}" placeholder="Password" title="Password" style="width:50%;cursor:initial;">&nbsp;
+                <button class="button" type="submit" style="padding:1px 10px">Connect</button>
             `;
 
             const manaDisplay = document.getElementById("trackedResources");
@@ -120,10 +133,10 @@
         /**
          * Called on form submit. Connects to AP, loads a separate AP save, 
          */
-        async connect(host, port, slotName) {
+        async connect(host, port, slotName, options) {
             this.client = new AP.Client();
             try {
-                await this.client.login(host + ":" + port, slotName, "Idle Loops");
+                await this.client.login(host + ":" + port, slotName, "Idle Loops", options);
             } catch (err) {
                 alert("Connection failed: " + err);
                 return;
@@ -152,8 +165,8 @@
          */
         async setup() {
             const css = document.createElement("style");
-            css.textContent = 
-            `#actionLogTitle {
+            css.textContent =
+                `#actionLogTitle {
                 cursor: pointer;
             }
             body.t-dark #actionLogContainer #apSeparator {
@@ -228,7 +241,7 @@
                     send();
                 }
             });
-            
+
             messageElement.appendChild(messageInput);
             messageElement.appendChild(messageSend);
 
@@ -395,11 +408,11 @@
                     // Add an early return so it can flow to looting lootables in any other case
                     const searchToggler = document.getElementById(`searchToggler${varName}`);
                     if (window.IdleLoopsAP.state[`Z${this.index + 1} - ${varName} - Search`] && this[`total${varName}`] - this[`checked${varName}`] > 0 && ((searchToggler && !searchToggler.checked) || this[`goodTemp${varName}`] <= 0)) {
-                            this[`checked${varName}`]++;
-                            if (this[`checked${varName}`] % rewardRatio === 0) {
-                                //this[`lootFrom${varName}`] += rewardFunc();
-                                this[`good${varName}`]++;
-                            }
+                        this[`checked${varName}`]++;
+                        if (this[`checked${varName}`] % rewardRatio === 0) {
+                            //this[`lootFrom${varName}`] += rewardFunc();
+                            this[`good${varName}`]++;
+                        }
                         view.requestUpdate("updateRegular", { name: varName, index: this.index });
                         return;
                     }
