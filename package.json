@@ -1,0 +1,18 @@
+{
+    "name": "idle-loops-ap",
+    "version": "0.4.1",
+    "private": true,
+    "description": "Mod for Idle Loops to integrate with Archipelago",
+    "type": "module",
+    "scripts": {
+        "build": "node esbuild.config.js",
+        "watch": "node esbuild.config.js --watch",
+        "dev": "npm run watch"
+    },
+    "devDependencies": {
+        "esbuild": "^0.27.0"
+    },
+    "dependencies": {
+        "esbuild-sass-plugin": "^3.7.0"
+    }
+}

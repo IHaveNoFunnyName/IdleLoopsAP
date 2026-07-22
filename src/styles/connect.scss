@@ -1,0 +1,18 @@
+html:not(.responsive) #menu {
+    display: inline-flex;
+    width: 1px;
+}
+
+#APconnect {
+    display: inline-flex;
+    position: fixed;
+    top: 15px;
+    right: 0;
+    align-items: center;
+    width: 440px;
+}
+
+#APconnect button {
+    min-width: 66px;
+    margin-top: 6px;
+}

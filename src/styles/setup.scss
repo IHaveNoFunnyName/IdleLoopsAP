@@ -1,0 +1,59 @@
+#actionLogTitle {
+    cursor: pointer;
+}
+
+body.t-dark #actionLogContainer #apSeparator {
+    color: white;
+}
+
+#actionLogContainer #apSeparator {
+    color: black;
+}
+
+#actionLogContainer:not(.ap) #apTitle {
+    color: gray;
+}
+
+#actionLogContainer:not(.ap) #actionLog {
+    display: block;
+}
+
+#actionLogContainer:not(.ap) #apLog,
+#actionLogContainer:not(.ap) #apMessage {
+    display: none !important;
+}
+
+#actionLogContainer.ap #actionLogTitle {
+    color: gray;
+}
+
+#actionLogContainer.ap #apTitle {
+    color: black;
+}
+
+body.t-dark #actionLogContainer.ap #apTitle {
+    color: white;
+}
+
+#actionLogContainer.ap #actionLog {
+    display: none;
+}
+
+#actionLogContainer.ap #apLog,
+#actionLogContainer.ap #apMessage {
+    display: block;
+}
+
+[id^="infoContainer"]:not(.ap-search) span:has(+[id^="unchecked"]),
+[id^="infoContainer"]:not(.ap-search) [id^="unchecked"] {
+    color: gray;
+    text-decoration: line-through;
+}
+
+#infoContainerMet:not(.user-hidden) {
+    display: contents !important;
+}
+
+:root.editing-hidden-vars #infoContainerMet.user-hidden {
+    display: contents !important;
+}
