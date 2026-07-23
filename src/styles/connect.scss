@@ -10,9 +10,19 @@ html:not(.responsive) #menu {
     right: 0;
     align-items: center;
     width: 440px;
-}
 
-#APconnect button {
-    min-width: 66px;
-    margin-top: 6px;
+    input {
+        width: 50%;
+        cursor: initial;
+        margin-right: 4px;
+    }
+
+    input#APport {
+        width: 25%;
+    }
+
+    button {
+        min-width: 66px;
+        margin-top: 6px;
+    }
 }
