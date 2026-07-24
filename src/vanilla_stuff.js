@@ -150,7 +150,7 @@ export function vanilla_overwrites(state) {
     resetResources = () => {
         resources = copyObject(resourcesTemplate);
         resources.gold = state["Filler - 1 Starting Gold"];
-        if (getExploreProgress() >= 100) addResource("glasses", true);
+        if (state["Z1 - Buy Glasses"] > 1) addResource("glasses", true);
         view.requestUpdate("updateResources", null);
     }
 }
