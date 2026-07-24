@@ -1,6 +1,6 @@
 import connectCss from "./styles/connect.scss";
-import styleCss from "./styles/style.scss";
 import client from "./client.js";
+import { setup_ui } from "./vanilla_stuff.js";
 /**
  * Creates the AP connect form and handles submission. 
  */
@@ -52,80 +52,3 @@ export function create_form(IdleLoopsAP, callback) {
     const manaDisplay = document.getElementById("trackedResources");
     manaDisplay.parentNode.insertBefore(form, manaDisplay.nextSibling);
 };
-
-async function setup_ui(IdleLoopsAP) {
-    const css = document.createElement("style");
-    css.textContent = styleCss;
-    document.head.appendChild(css);
-
-    if (IdleLoopsAP.slotData.ui_crime) {
-        const ui_crime = document.querySelectorAll("i.fa-arrow-left")
-        const slash = document.createElement("span");
-        slash.textContent = " / ";
-        ui_crime[0].replaceWith(slash);
-        const unchecked = document.createElement("span");
-        unchecked.textContent = "Unchecked: ";
-        ui_crime[1].replaceWith(unchecked);
-    }
-
-    const actionlogTitle = document.querySelector("#actionLogTitle");
-
-    const logElement = document.createElement("ul");
-    IdleLoopsAP.logElement = logElement;
-    logElement.id = "apLog";
-    logElement.style.overflowY = "scroll";
-
-    const messageElement = document.createElement("div");
-    messageElement.id = "apMessage";
-    messageElement.style.display = "flex";
-    messageElement.style.paddingLeft = "40px";
-    const messageInput = document.createElement("input");
-    messageInput.type = "text";
-    messageInput.style.cursor = "initial";
-    messageInput.style.flexGrow = "1";
-    messageInput.style.marginRight = "10px";
-    messageInput.id = "apMessageInput";
-    const messageSend = document.createElement("button");
-    messageSend.className = "button";
-    messageSend.id = "apMessageSend";
-    messageSend.textContent = "Send";
-
-    const send = () => {
-        const input = document.getElementById("apMessageInput");
-        if (input.value.length > 0) {
-            IdleLoopsAP.client.messages.say(input.value);
-            input.value = "";
-        }
-    }
-    messageSend.addEventListener("click", send);
-    messageInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-            send();
-        }
-    });
-
-    messageElement.appendChild(messageInput);
-    messageElement.appendChild(messageSend);
-
-    if (IdleLoopsAP.newUI) {
-        const actionLogContainer = document.getElementById("actionLogContainer");
-        const logTitle = document.createElement("span");
-        logTitle.innerHTML = " <span id=\"apSeparator\">|</span> <span id=\"apTitle\">AP Log</span>";
-        actionLogTitle.appendChild(logTitle);
-        actionLogTitle.addEventListener("click", () => {
-            actionLogContainer.classList.toggle("ap");
-        });
-        actionLogContainer.appendChild(messageElement);
-        actionLogContainer.appendChild(logElement);
-    } else {
-        const container = document.createElement("div");
-        container.style.width = "535px";
-        container.style.maxHeight = "591px";
-        container.style.overflow = "auto";
-        container.innerHTML = "<div class=\"large bold\" style=\"width:100%;text-align:center;\">AP Log</div>";
-        container.appendChild(messageElement);
-        container.appendChild(logElement);
-        const townColumn = document.getElementById("townColumn");
-        townColumn.parentNode.insertBefore(container, townColumn.nextSibling);
-    }
-}

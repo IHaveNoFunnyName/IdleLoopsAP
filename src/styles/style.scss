@@ -50,6 +50,14 @@
     }
 }
 
+#apTitle,
+#actionLogTitle {
+    .showthis p {
+        font-size: 14px;
+        font-weight: initial;
+    }
+}
+
 [id^="infoContainer"]:not(.ap-search) {
 
     span:has(+ [id^="unchecked"]),
@@ -105,4 +113,8 @@ body:not(.t-dark) .ap-player-other {
 
 .ap-item {
     color: #00EEEE;
+}
+
+body:not(.t-dark) .ap-item {
+    color: #00c0c0;
 }

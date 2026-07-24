@@ -1,3 +1,11 @@
+import styleCss from "./styles/style.scss";
+
+const apStateHover = document.createElement("div");
+apStateHover.classList.add("showthis");
+const stateNode = document.createElement("div");
+stateNode.innerHTML = "AP Filler Items";
+apStateHover.appendChild(stateNode);
+
 export function ap_load(name, seed, bonus) {
     saveName = "APSave" + name + seed;
     let first_load = false;
@@ -12,6 +20,112 @@ export function ap_load(name, seed, bonus) {
     if (first_load) {
         totalOfflineMs = bonus;
     }
+}
+
+
+export function setup_ui(IdleLoopsAP) {
+    const css = document.createElement("style");
+    css.textContent = styleCss;
+    document.head.appendChild(css);
+
+    if (IdleLoopsAP.slotData.ui_crime) {
+        const ui_crime = document.querySelectorAll("i.fa-arrow-left")
+        const slash = document.createElement("span");
+        slash.textContent = " / ";
+        ui_crime[0].replaceWith(slash);
+        const unchecked = document.createElement("span");
+        unchecked.textContent = "Unchecked: ";
+        ui_crime[1].replaceWith(unchecked);
+    }
+
+    const logElement = document.createElement("ul");
+    IdleLoopsAP.logElement = logElement;
+    logElement.id = "apLog";
+    logElement.style.overflowY = "scroll";
+
+    const messageElement = document.createElement("div");
+    messageElement.id = "apMessage";
+    messageElement.style.display = "flex";
+    messageElement.style.paddingLeft = "40px";
+    const messageInput = document.createElement("input");
+    messageInput.type = "text";
+    messageInput.style.cursor = "initial";
+    messageInput.style.flexGrow = "1";
+    messageInput.style.marginRight = "10px";
+    messageInput.id = "apMessageInput";
+    const messageSend = document.createElement("button");
+    messageSend.className = "button";
+    messageSend.id = "apMessageSend";
+    messageSend.textContent = "Send";
+
+    const send = () => {
+        const input = document.getElementById("apMessageInput");
+        if (input.value.length > 0) {
+            IdleLoopsAP.client.messages.say(input.value);
+            input.value = "";
+        }
+    }
+    messageSend.addEventListener("click", send);
+    messageInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            send();
+        }
+    });
+
+    messageElement.appendChild(messageInput);
+    messageElement.appendChild(messageSend);
+
+    if (IdleLoopsAP.newUI) {
+        const actionLogTitle = document.querySelector("#actionLogTitle");
+        actionLogTitle.classList.add("showthat");
+
+        const actionLogContainer = document.getElementById("actionLogContainer");
+        actionLogContainer.classList.add("ap");
+
+        const logTitle = document.createElement("span");
+        logTitle.innerHTML = " <span id=\"apSeparator\">|</span> <span id=\"apTitle\">AP Log</span>";
+        actionLogTitle.appendChild(logTitle);
+        actionLogTitle.addEventListener("click", () => {
+            actionLogContainer.classList.toggle("ap");
+        });
+        actionLogTitle.appendChild(apStateHover);
+
+        actionLogContainer.appendChild(messageElement);
+        actionLogContainer.appendChild(logElement);
+    } else {
+        const container = document.createElement("div");
+        container.style.width = "535px";
+        container.style.maxHeight = "591px";
+        container.style.overflow = "auto";
+        container.style.display = "inline-flex";
+        container.style.flexDirection = "column";
+        container.style.alignItems = "center";
+
+        const logTitle = document.createElement("div");
+        logTitle.id = "apTitle";
+        logTitle.classList.add("large", "bold", "showthat");
+        logTitle.style.textAlign = "center";
+        logTitle.textContent = "AP Log";
+        logTitle.appendChild(apStateHover);
+
+        messageElement.style.width = "calc(100% - 40px)";
+
+        container.appendChild(logTitle);
+        container.appendChild(messageElement);
+        container.appendChild(logElement);
+        const townColumn = document.getElementById("townColumn");
+        townColumn.parentNode.insertBefore(container, townColumn.nextSibling);
+    }
+}
+
+export function update_ap_state(state) {
+    let string = "<div>AP Filler Items</div><p>";
+    for (const key in state) {
+        if (key.startsWith("Filler - ")) {
+            string += `${key.substring(9)}: ${state[key]}<br>`;
+        }
+    }
+    stateNode.innerHTML = string + "</p>";
 }
 
 export function vanilla_overwrites(state) {

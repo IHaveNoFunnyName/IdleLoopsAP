@@ -1,5 +1,5 @@
 import { create_form } from "./connect.js";
-import { ap_load, vanilla_overwrites, previous_locations } from "./vanilla_stuff.js";
+import { ap_load, update_ap_state, vanilla_overwrites, previous_locations } from "./vanilla_stuff.js";
 import { hook_predictor } from "./predictor.js";
 import { hook_zone } from "./zone.js";
 import { lastEffectiveLimited } from "./action.js";
@@ -128,6 +128,7 @@ class IdleLoopsAP_class {
                 if (!old) this.log(`Progressive Lootable had the effect of an extra ${name_map_reverse[effective]}`);
                 view.updateRegular({ name: effective, index: limitedActions[effective].town });
             }
+            update_ap_state(this.state);
         }
     }
 
