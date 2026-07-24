@@ -1,5 +1,5 @@
 import connectCss from "./styles/connect.scss";
-import setupCss from "./styles/setup.scss";
+import styleCss from "./styles/style.scss";
 import client from "./client.js";
 /**
  * Creates the AP connect form and handles submission. 
@@ -40,7 +40,7 @@ export function create_form(IdleLoopsAP, callback) {
         if (!result) return;
         // Really belongs in post_submit, but we still have form in scope so...
         form.remove();
-        post_submit(IdleLoopsAP);
+        setup_ui(IdleLoopsAP);
     });
 
     form.innerHTML = `<input type=text id=APhost value=${apDefaults.host} placeholder=Host title=Host required>\
@@ -53,9 +53,9 @@ export function create_form(IdleLoopsAP, callback) {
     manaDisplay.parentNode.insertBefore(form, manaDisplay.nextSibling);
 };
 
-async function post_submit(IdleLoopsAP) {
+async function setup_ui(IdleLoopsAP) {
     const css = document.createElement("style");
-    css.textContent = setupCss;
+    css.textContent = styleCss;
     document.head.appendChild(css);
 
     if (IdleLoopsAP.slotData.ui_crime) {

@@ -35,7 +35,7 @@ class IdleLoopsAP_class {
     }
 
     /**
-     * Called on form submit. Connects to AP, loads a separate AP save, 
+     * Called on form submit. Connects to AP, sets up UI mods and loads a separate AP save
      */
     async connect(client, slotName, slotData, location_name_to_id) {
         this.client = client;
@@ -88,8 +88,6 @@ class IdleLoopsAP_class {
             } catch (error) {
                 console.error('Error checking location:', error.message);
             }
-        } else {
-            console.log('Unknown location: "' + x + '"');
         }
     }
 
@@ -137,6 +135,10 @@ class IdleLoopsAP_class {
         const message = document.createElement("li");
         message.textContent = x;
         this.logElement.insertBefore(message, this.logElement.firstChild);
+    }
+
+    log_node(x) {
+        this.logElement.insertBefore(x, this.logElement.firstChild);
     }
 }
 window.IdleLoopsAP = new IdleLoopsAP_class();

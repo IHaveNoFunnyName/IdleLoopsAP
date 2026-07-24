@@ -81,9 +81,7 @@ export function hook_zone(IdleLoopsAP, town) {
                 Reflect.set(target, prop, value, receiver);
                 const newLevel = target.getLevel(name);
                 for (let i = prevLevel + 1; i <= newLevel; i++) {
-                    if (bar_locations.includes(i)) {
-                        IdleLoopsAP.location(`Z${town + 1} - ${name} - ${i}%`);
-                    }
+                    IdleLoopsAP.location(`Z${town + 1} - ${name} - ${i}%`);
                 }
                 return true;
             }

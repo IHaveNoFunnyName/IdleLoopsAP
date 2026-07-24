@@ -49,9 +49,7 @@ export function previous_locations(IdleLoopsAP) {
             if (action.type == "progress") {
                 let level = towns[town].getLevel(action.varName);
                 for (let i = 0; i <= level; i++) {
-                    if (bar_locations.includes(i)) {
-                        IdleLoopsAP.location(`Z${town + 1} - ${action.varName} - ${i}%`);
-                    }
+                    IdleLoopsAP.location(`Z${town + 1} - ${action.varName} - ${i}%`);
                 }
             }
             if (action.type == "limited") {

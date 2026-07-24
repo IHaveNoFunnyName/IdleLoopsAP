@@ -66,3 +66,43 @@
 :root.editing-hidden-vars #infoContainerMet.user-hidden {
     display: contents !important;
 }
+
+.ap-entrance {
+    color: #6495ED;
+}
+
+.ap-location {
+    color: #00FF7F;
+}
+
+body:not(.t-dark) .ap-location {
+    color: #00c060;
+}
+
+.ap-player-self {
+    color: #EE00EE;
+}
+
+.ap-player-other {
+    color: #FAFAD2;
+}
+
+body:not(.t-dark) .ap-player-other {
+    color: #dddd2e;
+}
+
+.ap-item-progression {
+    color: #AF99EF;
+}
+
+.ap-item-useful {
+    color: #6D8BE8;
+}
+
+.ap-item-trap {
+    color: #FA8072;
+}
+
+.ap-item {
+    color: #00EEEE;
+}
