@@ -35,11 +35,7 @@ const finishRegular = function (varName, rewardRatio, rewardFunc) {
     view.requestUpdate("updateRegular", { name: varName, index: this.index });
 }
 
-export function hook_zone(IdleLoopsAP, town) {
-    for (const action of towns[town].totalActionList) {
-        hook_action(IdleLoopsAP, action);
-    }
-
+export function hook_town(IdleLoopsAP, town) {
     return new Proxy(towns[town], {
         get: (target, prop, receiver) => {
             // Item: Number of Limited Actions

@@ -1,8 +1,8 @@
 import { create_form } from "./connect.js";
 import { ap_load, update_ap_state, vanilla_overwrites, previous_locations } from "./vanilla_stuff.js";
 import { hook_predictor } from "./predictor.js";
-import { hook_zone } from "./zone.js";
-import { lastEffectiveLimited } from "./action.js";
+import { hook_town } from "./zone.js";
+import { hook_action, lastEffectiveLimited } from "./action.js";
 import { hook_skill, hook_buff } from "./skills.js";
 
 import { name_map, name_map_reverse, bar_locations, skill_locations, limitedActions, segments, skill_actions } from "./data.js";
@@ -10,7 +10,7 @@ import { name_map, name_map_reverse, bar_locations, skill_locations, limitedActi
 class IdleLoopsAP_class {
     client = false;
     offlineTime = 0;
-    // Return 0 on miss without having to boilerplate a .get() everywhere
+    // Return 0 on miss without having to like put a .get() everywhere
     state = new Proxy({}, {
         get: (target, prop) => {
             if (prop in target) {
@@ -57,7 +57,10 @@ class IdleLoopsAP_class {
         this.predictor = hook_predictor(this.state);
 
         for (let town = 0; town <= this.slotData.goal; town++) {
-            towns[town] = hook_zone(this, town)
+            for (const action of towns[town].totalActionList) {
+                hook_action(this, action);
+            }
+            towns[town] = hook_town(this, town)
         }
 
         for (const skill in skills) {
