@@ -6,7 +6,7 @@ import { hook_action, lastEffectiveLimited } from "./action.js";
 import { hook_skill, hook_buff } from "./skills.js";
 import unhidemetCss from "./styles/unhidemet.scss";
 
-import { name_map, name_map_reverse, bar_locations, skill_locations, limitedActions, segments, skill_actions } from "./data.js";
+import { name_map, name_map_reverse, bar_locations, skill_locations, limitedActions, segments } from "./data.js";
 
 class IdleLoopsAP_class {
     client = false;
@@ -55,7 +55,7 @@ class IdleLoopsAP_class {
      */
     post_load() {
         // Hook predictor first so the web worker doesn't freak out.
-        this.predictor = hook_predictor(this.state);
+        this.predictor = hook_predictor(this);
 
         for (let town = 0; town <= this.slotData.goal; town++) {
             for (const action of towns[town].totalActionList) {

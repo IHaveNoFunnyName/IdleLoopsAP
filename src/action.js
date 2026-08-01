@@ -1,4 +1,5 @@
 import { setup_scout } from "./scout.js";
+import { limitedActions, name_map_reverse } from "./data.js";
 
 export function hook_action(IdleLoopsAP, action) {
 
@@ -32,6 +33,21 @@ export function hook_action(IdleLoopsAP, action) {
         // So unhooking stops a bunch of processsing on the most common occurance in the game.
         this.finish = this._finish;
         return this._finish();
+    }
+
+    // Hooking in here instead of overwriting a higher level "addSkillExp()"
+    if ("skills" in action) {
+        action.skills = new Proxy(action.skills, {
+            get: (target, prop, receiver) => {
+                let exp = Reflect.get(target, prop, receiver);
+                if (typeof exp === "function") {
+                    exp = exp();
+                }
+                exp *= IdleLoopsAP.slotData.skill_exp_mult;
+                return exp;
+            }
+        });
+        view.requestUpdate("adjustExpGain", action);
     }
 
     setup_scout(IdleLoopsAP, action);
