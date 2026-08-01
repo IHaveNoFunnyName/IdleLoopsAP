@@ -1,5 +1,6 @@
 import styleCss from "./styles/style.scss";
-import { name_map_reverse, limitedActions } from "./data.js";
+import { name_map_reverse, limitedActions, new_actions, localization_strings } from "./data.js";
+import { hook_action } from "./action.js";
 
 const apStateHover = document.createElement("div");
 apStateHover.classList.add("showthis");
@@ -13,6 +14,9 @@ export function ap_load(name, seed, bonus) {
     if (!(window.localStorage[saveName] && window.localStorage[saveName] !== "null")) {
         first_load = true;
     }
+    // I think this is the only place to put this - load might need the action to exist when loading a save that has it in its list.
+    add_actions();
+
     // load, stop, gameIsStopped and pauseGame are globals defined by the game
     load();
     if ((!stop) && typeof stop !== "function" || (typeof gameIsStopped !== "undefined" && !gameIsStopped)) {
@@ -125,6 +129,66 @@ export function setup_ui(IdleLoopsAP) {
         container.appendChild(logElement);
         const townColumn = document.getElementById("townColumn");
         townColumn.parentNode.insertBefore(container, townColumn.nextSibling);
+    }
+}
+
+function loc(path, text, lib) {
+    const doc = Localization.libs[lib];
+    if (!doc) return;
+
+    const split = path.split(">");
+    let node = doc.documentElement;
+
+    for (const part of split) {
+        let next = null;
+        for (const child of node.children) {
+            if (child.tagName === part) {
+                next = child;
+                break;
+            }
+        }
+        if (!next) {
+            next = doc.createElement(part);
+            node.appendChild(next);
+        }
+        node = next;
+    }
+    node.textContent = text;
+}
+
+function replace_image() {
+    for (const el of document.querySelectorAll('[src="img/aPShopZ1.svg"]')) {
+        el.src = "https://ihavenofunnyname.github.io/IdleLoopsAP/black-icon.svg";
+    }
+}
+
+export function add_actions() {
+    for (const [path, text] of localization_strings) {
+        loc(path, text, "game");
+        loc(path, text, "fallback");
+    }
+
+    for (const action of new_actions) {
+        Action[action.varName] = action;
+        view.createTownAction(action);
+        totalActionList.push(action);
+        // First time i gave up and used window.IdleLoopsAP instead of drilling it down
+        hook_action(window.IdleLoopsAP, action);
+    }
+
+    // Sad to have to do this, but src is directly calculated from the action varname,
+    // and i'm not seeing a good place to hook into to set it to what i want from the start.
+    // So just fix it post hoc.
+    replace_image();
+    view._predictor_already_took_updateNextActions = view.updateNextActions;
+    view.updateNextActions = () => {
+        view._predictor_already_took_updateNextActions();
+        replace_image();
+    }
+    view._update = view.update;
+    view.update = () => {
+        view._update();
+        replace_image();
     }
 }
 

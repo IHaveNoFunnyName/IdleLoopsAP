@@ -1,4 +1,4 @@
-
+import { new_actions_for_predictor } from "./data.js";
 
 export function hook_predictor(IdleLoopsAP) {
     // If the Predictor is installed, hook into it to handle starting items
@@ -78,4 +78,10 @@ export function hook_predictor(IdleLoopsAP) {
         predictor.predict = predict;
     }
     return predictor;
+}
+
+export function predictor_add_actions(predictor) {
+    for (const name in new_actions_for_predictor) {
+        predictor.predictions[name] = new predictor.predictions["Wander"].constructor(name, new_actions_for_predictor[name]);
+    }
 }

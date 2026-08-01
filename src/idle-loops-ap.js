@@ -1,6 +1,6 @@
 import { create_form } from "./connect.js";
 import { ap_load, update_ap_state, vanilla_overwrites, previous_locations } from "./vanilla_stuff.js";
-import { hook_predictor } from "./predictor.js";
+import { hook_predictor, predictor_add_actions } from "./predictor.js";
 import { hook_town } from "./zone.js";
 import { hook_action, lastEffectiveLimited } from "./action.js";
 import { hook_skill, hook_buff } from "./skills.js";
@@ -44,7 +44,11 @@ class IdleLoopsAP_class {
         this.location_name_to_id = location_name_to_id;
         this.goalAction = ["StartJourney", "ContinueOn", "StartTrek", "FaceJudgement"][slotData.goal];
 
+        // Hook predictor first so the web worker doesn't freak out.
+        this.predictor = hook_predictor(this);
+
         ap_load(slotName, this.client.room.seedName, this.slotData.bonus);
+        predictor_add_actions(this.predictor);
         this.post_load();
     }
 
@@ -54,8 +58,6 @@ class IdleLoopsAP_class {
      * Called after a successful connection but before data from the connection is processed.
      */
     post_load() {
-        // Hook predictor first so the web worker doesn't freak out.
-        this.predictor = hook_predictor(this);
 
         for (let town = 0; town <= this.slotData.goal; town++) {
             for (const action of towns[town].totalActionList) {
@@ -82,14 +84,48 @@ class IdleLoopsAP_class {
         // Should be in vanilla overwrites? Well, it's just one line and fits with the above.
         gameSpeed = (1 + (0.1 * this.state["Filler - +0.1 Game Speed"])) * this.slotData.game_speed;
 
+
         if (this.predictor) this.predictor.cache.reset();
         view.updateNextActions();
 
         previous_locations(this);
     }
+    // additional is for the predictor, which needs to know more than the cost of the next one.
+    nextShop(town, additional = 0) {
+        let count = this.slotData[`location_z${town + 1}_shop`] ?? 10;
+        if (count === 0) {
+            return false;
+        }
+
+        let num = 1;
+        let id;
+        while (true) {
+            id = this.location_name_to_id[`Z${town + 1} - AP Shop - #${num}`] ?? false;
+            if (!id) {
+                return false;
+            }
+            if (this.client.room.missingLocations.includes(id)) {
+                break;
+            }
+            num++;
+        }
+        if (num + additional > count) {
+            return false;
+        }
+        const max = this.slotData[`z${town + 1}_shop_max`] ?? 300;
+        // Only way we get here is if there's one item in the shop and we haven't bought it.
+        if (count === 1) {
+            return max;
+        }
+
+        const min = this.slotData[`z${town + 1}_shop_min`] ?? 50;
+        const step = (max - min) / (count - 1);
+
+        return [id, Math.floor(((min + 1) + (step * (num - 1 + additional))) / 10) * 10];
+    }
 
     location(x) {
-        const check = this.location_name_to_id?.[x] ?? false;
+        const check = typeof x === "string" ? this.location_name_to_id?.[x] ?? false : x;
         if (check) {
             try {
                 this.client.check(check);
@@ -108,6 +144,9 @@ class IdleLoopsAP_class {
             action = name_map[action] ?? action;
             if (action === "BuyMana") {
                 action = "BuyManaZ" + zone.substring(1);
+            }
+            if (action === "APShop") {
+                action = "APShopZ" + zone.substring(1);
             }
             x = [zone, action, ...rest].join(" - ");
         }

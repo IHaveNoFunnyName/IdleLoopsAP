@@ -12,8 +12,15 @@ export function hook_action(IdleLoopsAP, action) {
 
     // I decided to remove the "Zx" suffix from actions like buymana on the AP side, because it's redundent with the "Zx - blah" notation 
     let name = action.varName.startsWith("BuyMana") ? `BuyMana` : action.varName;
+    name = name.startsWith("APShop") ? "APShop" : name;
     action._finish = action.finish;
     action.finish = function () {
+
+        if (name === "APShop") {
+            IdleLoopsAP.location(IdleLoopsAP.nextShop(action.townNum)[0]);
+            return;
+        }
+
         IdleLoopsAP.location(`Z${action.townNum + 1} - ${name_map_reverse[name]}`);
         if (this.varName == IdleLoopsAP.goalAction) {
             if (this.varName == "FaceJudgement") {

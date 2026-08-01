@@ -1,5 +1,4 @@
-import { bar_locations, limitedActions, name_map_reverse } from "./data.js";
-import { skill_actions, skill_locations } from "./data.js";
+import { bar_locations, limitedActions, name_map_reverse, skill_map_reverse, skill_actions, skill_locations } from "./data.js";
 
 const scoutNodes = {};
 const scouts = {};
@@ -16,11 +15,11 @@ const scout_select = {
         } else if (varName in skill_actions) {
             const skill = skill_actions[varName];
             const level = getSkillLevel(skill);
-            const next_level = level === 0 ? 1 : Math.ceil(level / skill_locations[skill]) * skill_locations[skill];
-            const next = `${skill} - Level ${next_level}`;
+            const next_level = level <= 9 ? level + 1 : Math.ceil((level + 1) / skill_locations[skill]) * skill_locations[skill];
+            const next_id = IdleLoopsAP.location_name_to_id[`${skill_map_reverse[skill]} - Level ${next_level}`] ?? false;
 
-            if (next in IdleLoopsAP.location_name_to_id) {
-                scout(IdleLoopsAP, els, IdleLoopsAP.location_name_to_id[next], `Getting to ${next_level} ${name_map_reverse[skill]}`, 2);
+            if (next_id && IdleLoopsAP.client.room.missingLocations.includes(next_id)) {
+                scout(IdleLoopsAP, els, next_id, `Getting to ${next_level} ${skill_map_reverse[skill]}`, 2);
                 return;
             }
         }
@@ -81,6 +80,14 @@ const scout_select = {
             n++;
         }
     },
+    shop: (IdleLoopsAP, els, town, varName) => {
+        const next = IdleLoopsAP.nextShop(town);
+        if (!next) {
+            document.querySelector("#APShopZ" + (town + 1)).textContent = "The shop is gone. You try to forget about it.";
+            return;
+        }
+        scout(IdleLoopsAP, els, next[0], next[1]);
+    }
 }
 
 export function setup_scout(IdleLoopsAP, action) {
@@ -88,25 +95,19 @@ export function setup_scout(IdleLoopsAP, action) {
     const el = document.querySelectorAll(`#container${action.varName}.showthat, #infoContainer${action.varName} .showthat` + (skill ? `, #skill${skill}Container.showthat` : ""));
     const hovers = document.querySelectorAll(`#container${action.varName}.showthat .showthis, #infoContainer${action.varName} .showthat .showthis` + (skill ? `, #skill${skill}Container.showthat .showthis` : ""));
     const scoutcontainers = []
-    for (const hover of hovers) {
-        const scoutcontainer = document.createElement("div");
-        hover.prepend(document.createElement("br"));
-        hover.prepend(scoutcontainer);
-        scoutcontainers.push(scoutcontainer);
+    let type = action.type;
+    if (!(action.varName.startsWith("APShop"))) {
+        for (const hover of hovers) {
+            const scoutcontainer = document.createElement("div");
+            hover.prepend(document.createElement("br"));
+            hover.prepend(scoutcontainer);
+            scoutcontainers.push(scoutcontainer);
+        }
+    } else {
+        scoutcontainers.push(document.querySelector(`#scoutAPShopZ${action.townNum + 1}`));
+        type = "shop";
     }
-    el.forEach(e => e.addEventListener("mouseover", () => { scout_select[action.type](IdleLoopsAP, scoutcontainers, action.townNum, action.varName) }));
-
-    //placeholder, skill isn't an action just needed a place to dump the copy & paste
-    if (action.type == "skill") {
-        const skill = action.varName;
-        const el = document.querySelector(`#skill${skill}Container.showthat`);
-        const hover = el.querySelector(".showthis");
-        const scoutcontainer = document.createElement("div");
-        scoutcontainer.classList.add("scout");
-        hover.prepend(document.createElement("br"));
-        hover.prepend(scoutcontainer);
-        el.addEventListener("mouseover", () => { scoutSkill(IdleLoopsAP, scoutcontainer, skill) });
-    }
+    el.forEach(e => e.addEventListener("mouseover", () => { scout_select[type](IdleLoopsAP, scoutcontainers, action.townNum, action.varName) }));
 }
 
 async function scout(IdleLoopsAP, els, id, message, hint = 0) {
@@ -133,37 +134,18 @@ async function scout(IdleLoopsAP, els, id, message, hint = 0) {
         } else {
             className = "";
         }
-        el.innerHTML = `${message} will grant ${scout[0].receiver.name}'s <span class="bold ap-item${className}">${scout[0].name}</span>`;
+        // Assume shop when message is not a string. (and that it's a number instead)
+        // Inelegant
+        if (typeof message === "string") {
+            el.innerHTML = `${message} will grant ${scout[0].receiver.name}'s <span class="bold ap-item${className}">${scout[0].name}</span>`;
+        } else {
+            el.innerHTML = `It's selling ${scout[0].receiver.name}'s <span class="bold ap-item${className}">${scout[0].name}</span> for ${message} gold.`;
+        }
     }
 }
 
 async function no_more_scouts(IdleLoopsAP, els) {
     for (const el of els) {
-        el.textContent = "No more checks";
-    }
-}
-
-async function scoutSkill(IdleLoopsAP, el, skill) {
-    const level = getSkillLevel(skill);
-    if (level < 300) {
-        let next = 0;
-        let i = 0;
-        while (next <= level) {
-            next = skill_locations[i];
-            i++;
-        }
-        const location = IdleLoopsAP.location_name_to_id[`${skill} - Level ${next}`];
-        let scout
-        if (location in IdleLoopsAP.scouts) {
-            scout = IdleLoopsAP.scouts[location];
-        } else {
-            el.textContent = `Scouting...`;
-
-            scout = await IdleLoopsAP.client.scout([location], 2)
-            IdleLoopsAP.scouts[location] = scout;
-        }
-        el.textContent = `${scout[0].receiver.name}'s "${scout[0].name}" is at Level ${next}`;
-    } else {
         el.textContent = "No more checks";
     }
 }
