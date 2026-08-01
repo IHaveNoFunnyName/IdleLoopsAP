@@ -4,6 +4,7 @@ import { hook_predictor } from "./predictor.js";
 import { hook_town } from "./zone.js";
 import { hook_action, lastEffectiveLimited } from "./action.js";
 import { hook_skill, hook_buff } from "./skills.js";
+import unhidemetCss from "./styles/unhidemet.scss";
 
 import { name_map, name_map_reverse, bar_locations, skill_locations, limitedActions, segments, skill_actions } from "./data.js";
 
@@ -77,6 +78,10 @@ class IdleLoopsAP_class {
         for (const item of this.client.items.received) {
             this.item(item.name, true);
         }
+
+        // Should be in vanilla overwrites? Well, it's just one line and fits with the above.
+        gameSpeed = (1 + (0.1 * this.state["Filler - +0.1 Game Speed"])) * this.slotData.game_speed;
+
         if (this.predictor) this.predictor.cache.reset();
         view.updateNextActions();
 
@@ -125,7 +130,7 @@ class IdleLoopsAP_class {
         } else if (zone === "Filler") {
             // Starting mana and gold are handled elsewhere
             if (action === "+0.1 Game Speed") {
-                gameSpeed = 1 + (0.1 * this.state[x]);
+                gameSpeed = (1 + (0.1 * this.state[x])) * this.slotData.game_speed;
             } else if (action === "Progressive Lootable") {
                 const effective = lastEffectiveLimited(this, this.state);
                 if (!old) this.log(`Progressive Lootable had the effect of an extra ${name_map_reverse[effective]}`);
