@@ -43,7 +43,7 @@ class IdleLoopsAP_class {
         this.location_name_to_id = location_name_to_id;
         this.goalAction = ["StartJourney", "ContinueOn", "StartTrek", "FaceJudgement"][slotData.goal];
 
-        ap_load(this.slotName, this.client.room.seedName, this.slotData.bonus);
+        ap_load(slotName, this.client.room.seedName, this.slotData.bonus);
         this.post_load();
     }
 
@@ -127,11 +127,15 @@ class IdleLoopsAP_class {
             if (action === "+0.1 Game Speed") {
                 gameSpeed = 1 + (0.1 * this.state[x]);
             } else if (action === "Progressive Lootable") {
-                const effective = lastEffectiveLimited(this, this.state, "Progressive Lootable");
+                const effective = lastEffectiveLimited(this, this.state);
                 if (!old) this.log(`Progressive Lootable had the effect of an extra ${name_map_reverse[effective]}`);
                 view.updateRegular({ name: effective, index: limitedActions[effective].town });
             }
             update_ap_state(this.state);
+        } else if (action === "ThrowParty") {
+            const unhideMet = document.createElement("style");
+            unhideMet.innerHTML = unhidemetCss;
+            document.head.appendChild(unhideMet);
         }
     }
 

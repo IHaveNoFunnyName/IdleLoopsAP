@@ -1,4 +1,5 @@
 import styleCss from "./styles/style.scss";
+import { name_map_reverse, limitedActions } from "./data.js";
 
 const apStateHover = document.createElement("div");
 apStateHover.classList.add("showthis");
@@ -28,14 +29,23 @@ export function setup_ui(IdleLoopsAP) {
     css.textContent = styleCss;
     document.head.appendChild(css);
 
-    if (IdleLoopsAP.slotData.ui_crime) {
-        const ui_crime = document.querySelectorAll("i.fa-arrow-left")
-        const slash = document.createElement("span");
-        slash.textContent = " / ";
-        ui_crime[0].replaceWith(slash);
-        const unchecked = document.createElement("span");
-        unchecked.textContent = "Unchecked: ";
-        ui_crime[1].replaceWith(unchecked);
+    if (IdleLoopsAP.slotData.mod_ui_crime) {
+        const limiteds = document.querySelectorAll(".townInfoContainer");
+        for (const limited of limiteds) {
+            const ui_crime = limited.querySelectorAll("i.fa-arrow-left")
+            const slash = document.createElement("span");
+            slash.textContent = " / ";
+            ui_crime[0].replaceWith(slash);
+            const unchecked = document.createElement("span");
+            unchecked.textContent = "Unchecked: ";
+            ui_crime[1].replaceWith(unchecked);
+            const slash2 = document.createElement("span");
+            slash2.textContent = " / ";
+            ui_crime[2].replaceWith(slash2);
+            const checked = document.createElement("span");
+            checked.textContent = "Checked: ";
+            ui_crime[3].replaceWith(checked);
+        }
     }
 
     const logElement = document.createElement("ul");
@@ -163,14 +173,17 @@ export function previous_locations(IdleLoopsAP) {
             if (action.type == "progress") {
                 let level = towns[town].getLevel(action.varName);
                 for (let i = 0; i <= level; i++) {
-                    IdleLoopsAP.location(`Z${town + 1} - ${action.varName} - ${i}%`);
+                    IdleLoopsAP.location(`Z${town + 1} - ${name_map_reverse[action.varName]} - ${i}%`);
                 }
             }
             if (action.type == "limited") {
                 if (action.varName in limitedActions) {
                     let checks = Math.floor(towns[town][`checked${action.varName}`] / limitedActions[action.varName].ratio);
                     for (let i = 1; i <= checks; i++) {
-                        IdleLoopsAP.location(`Z${town + 1} - ${action.varName} - #${i}`);
+                        IdleLoopsAP.location(`Z${town + 1} - ${name_map_reverse[action.varName]} - #${i}`);
+                        if (i % 10 === 0) {
+                            IdleLoopsAP.location(`Z${town + 1} - x10 ${name_map_reverse[action.varName]} - #${Math.floor(i / 10)}`);
+                        }
                     }
                 }
             }
@@ -179,13 +192,13 @@ export function previous_locations(IdleLoopsAP) {
     for (const skill in skills) {
         let level = getSkillLevel(skill);
         for (let i = 1; i <= level; i++) {
-            IdleLoopsAP.location(`${skill} - Level ${i}`);
+            IdleLoopsAP.location(`${name_map_reverse[skill]} - Level ${i}`);
         }
     }
     for (const buff in buffs) {
         let level = buffs[buff].amt;
         for (let i = 1; i <= level; i++) {
-            IdleLoopsAP.location(`${buff} - Level ${i}`);
+            IdleLoopsAP.location(`${name_map_reverse[buff]} - Level ${i}`);
         }
     }
 }

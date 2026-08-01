@@ -13,16 +13,17 @@ export function hook_action(IdleLoopsAP, action) {
     let name = action.varName.startsWith("BuyMana") ? `BuyMana` : action.varName;
     action._finish = action.finish;
     action.finish = function () {
-        IdleLoopsAP.location(`Z${action.townNum + 1} - ${name}`);
+        IdleLoopsAP.location(`Z${action.townNum + 1} - ${name_map_reverse[name]}`);
         if (this.varName == IdleLoopsAP.goalAction) {
             if (this.varName == "FaceJudgement") {
                 // Thank you global scope (for once)
                 if (resources.reputation >= 50 || resources.reputation <= -50) {
                     IdleLoopsAP.client.goal();
                     this.finish = this._finish;
+                } else {
+                    // Early exit to not unhook if the action fails
+                    return this._finish();
                 }
-                // Early exit to not unhook if the action fails
-                return this._finish();
             } else {
                 IdleLoopsAP.client.goal();
             }

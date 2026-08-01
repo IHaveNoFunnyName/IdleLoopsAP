@@ -25,7 +25,7 @@ async function connect(IdleLoopsAP, { host, port, slotName, options }, callback)
             IdleLoopsAP.item(item.name);
         }
         if (IdleLoopsAP.predictor) IdleLoopsAP.predictor.cache.reset();
-        IdleLoopsAP.view.updateNextActions();
+        view.updateNextActions();
     });
 
     callback.bind(IdleLoopsAP)(client, slotName, slotData, client.package.findPackage("Idle Loops").locationTable);

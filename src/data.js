@@ -2,7 +2,15 @@ export const name_map = { "Wander": "Wander", "Mana Pot": "Pots", "Lock": "Locks
 export const name_map_reverse = Object.fromEntries(Object.entries(name_map).map(([k, v]) => [v, k]));
 
 export const bar_locations = [1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 95, 99, 100];
-export const skill_locations = [1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220, 230, 240, 250, 260, 270, 280, 290, 300];
+export const skill_locations = {
+    "Combat": 10,
+    "Magic": 10,
+    "Practical": 10,
+    "Alchemy": 5,
+    "Dark": 10,
+    "Chronomancy": 10,
+    "Pyromancy": 10,
+};
 
 // The order here is used for the "progressive limited" item, so it's ordered in usefulness > zone (mostly)
 // Max isn't said explicitly anywhere in the code we could just read
@@ -30,4 +38,4 @@ export const segments = {
     "HuntTrolls": 5,
 }
 
-export const skill_actions = ["WarriorLessons", "MageLessons", "PracticalMagic", "LearnAlchemy", "DarkMagic"];
+export const skill_actions = { "WarriorLessons": "Combat", "MageLessons": "Magic", "PracticalMagic": "Practical", "LearnAlchemy": "Alchemy", "DarkMagic": "Dark", "Chronomancy": "Chronomancy", "Pyromancy": "Pyromancy" };

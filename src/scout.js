@@ -1,16 +1,30 @@
 import { bar_locations, limitedActions, name_map_reverse } from "./data.js";
+import { skill_actions, skill_locations } from "./data.js";
 
 const scoutNodes = {};
 const scouts = {};
 // I thought of this as a very simple function map, but then it started making the most sense to calculate the location to scout here.
 const scout_select = {
     normal: (IdleLoopsAP, els, town, varName) => {
+        if (varName.startsWith("BuyMana")) {
+            varName = "BuyMana";
+        }
         const id = IdleLoopsAP.location_name_to_id[`Z${town + 1} - ${name_map_reverse[varName]}`];
         if (IdleLoopsAP.client.room.missingLocations.includes(id)) {
-            scout(IdleLoopsAP, els, id, `Z${town + 1} - ${name_map_reverse[varName]}`, "Finishing this action ");
-        } else {
-            no_more_scouts(IdleLoopsAP, els);
+            scout(IdleLoopsAP, els, id, "Finishing this action");
+            return;
+        } else if (varName in skill_actions) {
+            const skill = skill_actions[varName];
+            const level = getSkillLevel(skill);
+            const next_level = level === 0 ? 1 : Math.ceil(level / skill_locations[skill]) * skill_locations[skill];
+            const next = `${skill} - Level ${next_level}`;
+
+            if (next in IdleLoopsAP.location_name_to_id) {
+                scout(IdleLoopsAP, els, IdleLoopsAP.location_name_to_id[next], `Getting to ${next_level} ${name_map_reverse[skill]}`, 2);
+                return;
+            }
         }
+        no_more_scouts(IdleLoopsAP, els);
     },
 
     progress: (IdleLoopsAP, els, town, varName) => {
@@ -19,7 +33,7 @@ const scout_select = {
         // but i feel like i should still prefer less network. I say as i don't preload the datapackage.
         if (IdleLoopsAP.client.room.allLocations.includes(first_finish_id)) {
             if (IdleLoopsAP.client.room.missingLocations.includes(first_finish_id)) {
-                scout(IdleLoopsAP, els, first_finish_id, `Z${town + 1} - ${name_map_reverse[varName]}`, "Finishing this action ");
+                scout(IdleLoopsAP, els, first_finish_id, "Finishing this action");
             } else {
                 no_more_scouts(IdleLoopsAP, els);
             }
@@ -28,20 +42,31 @@ const scout_select = {
             const next = bar_locations.find(x => x > start);
             const next_id = IdleLoopsAP.location_name_to_id[`Z${town + 1} - ${name_map_reverse[varName]} - ${next}%`];
             if (IdleLoopsAP.client.room.missingLocations.includes(next_id)) {
-                scout(IdleLoopsAP, els, next_id, `Z${town + 1} - ${name_map_reverse[varName]} - ${next}%`, `Getting to ${next}% `);
+                scout(IdleLoopsAP, els, next_id, `Getting to ${next}%`);
             } else {
                 no_more_scouts(IdleLoopsAP, els);
             }
         }
     },
     limited: (IdleLoopsAP, els, town, varName) => {
-        const next = towns[town][`good${varName}`] + 1;
+        const next = Math.floor(towns[town][`checked${varName}`] / limitedActions[varName].ratio) + 1;
         const next_id = IdleLoopsAP.location_name_to_id[`Z${town + 1} - ${name_map_reverse[varName]} - #${next}`] ?? false;
         if (next_id && IdleLoopsAP.client.room.missingLocations.includes(next_id)) {
-            scout(IdleLoopsAP, els, next_id, `Z${town + 1} - ${name_map_reverse[varName]} - #${next}`, `The next ${name_map_reverse[varName]} `);
-        } else {
-            no_more_scouts(IdleLoopsAP, els);
+            scout(IdleLoopsAP, els, next_id, `The next ${name_map_reverse[varName]}`);
+            return;
         }
+        const first_batched_id = IdleLoopsAP.location_name_to_id[`Z${town + 1} - x10 ${name_map_reverse[varName]} - #1`] ?? false;
+        const batched = IdleLoopsAP.client.room.checkedLocations.includes(first_batched_id) || IdleLoopsAP.client.room.missingLocations.includes(first_batched_id);
+        if (batched) {
+            const next_batched = Math.floor(next / 10) + 1;
+            const next_batched_id = IdleLoopsAP.location_name_to_id[`Z${town + 1} - x10 ${name_map_reverse[varName]} - #${next_batched}`] ?? false;
+            if (next_batched_id && IdleLoopsAP.client.room.missingLocations.includes(next_batched_id)) {
+                scout(IdleLoopsAP, els, next_batched_id, `The next x10 ${name_map_reverse[varName]}`);
+                return;
+            }
+        }
+        no_more_scouts(IdleLoopsAP, els);
+
     },
     multipart: (IdleLoopsAP, els, town, varName) => {
         let n = 1;
@@ -51,7 +76,7 @@ const scout_select = {
                 return no_more_scouts(IdleLoopsAP, els);
             }
             if (IdleLoopsAP.client.room.missingLocations.includes(id)) {
-                return scout(IdleLoopsAP, els, id, `Z${town + 1} - ${name_map_reverse[varName]} - Completion #${n}`, `Completion #${n} `, 2);
+                return scout(IdleLoopsAP, els, id, `Completion #${n}`, 2);
             }
             n++;
         }
@@ -59,8 +84,9 @@ const scout_select = {
 }
 
 export function setup_scout(IdleLoopsAP, action) {
-    const el = document.querySelectorAll(`#container${action.varName}.showthat, #infoContainer${action.varName} .showthat`);
-    const hovers = document.querySelectorAll(`#container${action.varName}.showthat .showthis, #infoContainer${action.varName} .showthat .showthis`);
+    const skill = skill_actions[action.varName] ?? false;
+    const el = document.querySelectorAll(`#container${action.varName}.showthat, #infoContainer${action.varName} .showthat` + (skill ? `, #skill${skill}Container.showthat` : ""));
+    const hovers = document.querySelectorAll(`#container${action.varName}.showthat .showthis, #infoContainer${action.varName} .showthat .showthis` + (skill ? `, #skill${skill}Container.showthat .showthis` : ""));
     const scoutcontainers = []
     for (const hover of hovers) {
         const scoutcontainer = document.createElement("div");
@@ -83,7 +109,7 @@ export function setup_scout(IdleLoopsAP, action) {
     }
 }
 
-async function scout(IdleLoopsAP, els, id, location, message, hint = 0) {
+async function scout(IdleLoopsAP, els, id, message, hint = 0) {
     let scout
     if (id in scouts) {
         scout = scouts[id];
@@ -107,7 +133,7 @@ async function scout(IdleLoopsAP, els, id, location, message, hint = 0) {
         } else {
             className = "";
         }
-        el.innerHTML = `${message}will grant ${scout[0].receiver.name}'s <span class="bold ap-item${className}">${scout[0].name}</span>`;
+        el.innerHTML = `${message} will grant ${scout[0].receiver.name}'s <span class="bold ap-item${className}">${scout[0].name}</span>`;
     }
 }
 

@@ -1,7 +1,9 @@
 import { hook_action, effectiveLimited } from "./action.js"
+import { limitedActions, name_map_reverse } from "./data.js"
 
 // Since this funtion is basically static to the function we use window.IdleLoopsAP rather than it handed down via property.
 // It's that or define it again each call.
+
 // We rewrote the second half of this function
 
 // Weirdly it's called finishRegular but it's for handing lootables
@@ -56,14 +58,12 @@ export function hook_town(IdleLoopsAP, town) {
             // The game function that rewards one uses ++, which means it'll read from the proxy
             // and give a wrong answer, so we need to calculate the # manually
 
-            // Actually i really don't have to do this, all it does is give a better location name
-            // (i.e. "...Pots - #1", "...Pots - #2" vs "...Pots - #10", "...Pots - #20")
-            // Whatever i realised that after finishing
             if (value > 0 && typeof prop === "string" && prop.startsWith("good")) {
                 const name = prop.substring(4);
                 if (!name.startsWith("Temp")) {
                     const rewardRatio = limitedActions[name].ratio;
-                    IdleLoopsAP.location(`Z${town + 1} - ${name} - #${Math.floor(target['checked' + name] / rewardRatio)}`);
+                    IdleLoopsAP.location(`Z${town + 1} - ${name_map_reverse[name]} - #${Math.floor(target['checked' + name] / rewardRatio)}`);
+                    IdleLoopsAP.location(`Z${town + 1} - x10 ${name_map_reverse[name]} - #${Math.floor(target['checked' + name] / (rewardRatio * 10))}`);
                     return true;
                 }
             }
@@ -77,7 +77,7 @@ export function hook_town(IdleLoopsAP, town) {
                 Reflect.set(target, prop, value, receiver);
                 const newLevel = target.getLevel(name);
                 for (let i = prevLevel + 1; i <= newLevel; i++) {
-                    IdleLoopsAP.location(`Z${town + 1} - ${name} - ${i}%`);
+                    IdleLoopsAP.location(`Z${town + 1} - ${name_map_reverse[name]} - ${i}%`);
                 }
                 return true;
             }
@@ -89,7 +89,7 @@ export function hook_town(IdleLoopsAP, town) {
                 const name = prop.substring(0, prop.length - 11);
                 // Silly way to not send checks for buffs, just don't put them in segments
                 if (name in segments) {
-                    IdleLoopsAP.location(`Z${town + 1} - ${name} - Completion #${value / segments[name]}`);
+                    IdleLoopsAP.location(`Z${town + 1} - ${name_map_reverse[name]} - Completion #${value / segments[name]}`);
                 }
             }
 
