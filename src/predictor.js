@@ -76,6 +76,11 @@ export function hook_predictor(IdleLoopsAP) {
         }
 
         predictor.predict = predict;
+        const _getTotalBonusXP = predictor.predictions["Wander"].constructor.prototype.getTotalBonusXP;
+        predictor.predictions["Wander"].constructor.prototype.getTotalBonusXP = function () {
+            return _getTotalBonusXP.apply(this, arguments) * (1 + (0.1 * IdleLoopsAP.state["Filler - +0.1 Exp Multiplier"]));
+        }
+
     }
     return predictor;
 }

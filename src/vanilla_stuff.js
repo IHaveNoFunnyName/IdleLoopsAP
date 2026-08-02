@@ -52,6 +52,20 @@ export function setup_ui(IdleLoopsAP) {
         }
     }
 
+    for (const stat of Object.keys(stats)) {
+        const sibling = document.querySelector(`#ss${stat}Container`);
+        const br = document.createElement("br");
+        const next = document.createElement("div");
+        next.id = `APMult${stat}`;
+        next.innerHTML = `<div class="bold">AP Mult:</div> <div class="ap-mult">${1 + (0.1 * IdleLoopsAP.state["Filler - +0.1 Exp Multiplier"])}x</div>`;
+        sibling.parentNode.insertBefore(br, sibling.nextSibling);
+        sibling.parentNode.insertBefore(next, br.nextSibling);
+    }
+    const _getTotalBonusXP = getTotalBonusXP;
+    getTotalBonusXP = function () {
+        return _getTotalBonusXP.apply(this, arguments) * (1 + (0.1 * IdleLoopsAP.state["Filler - +0.1 Exp Multiplier"]));
+    }
+
     const logElement = document.createElement("ul");
     IdleLoopsAP.logElement = logElement;
     logElement.id = "apLog";
