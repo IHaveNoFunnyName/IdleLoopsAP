@@ -1,13 +1,27 @@
 import { setup_scout } from "./scout.js";
-import { limitedActions, name_map_reverse } from "./data.js";
+import { limitedActions, name_map_reverse, skill_requirements } from "./data.js";
 
 export function hook_action(IdleLoopsAP, action) {
 
     action.visible = function () {
         return unlocked(IdleLoopsAP, IdleLoopsAP.state, this);
     }
-    action.unlocked = function () {
-        return unlocked(IdleLoopsAP, IdleLoopsAP.state, this);
+    if (IdleLoopsAP.slotData.logic_vanilla_all) {
+        action._unlocked = action.unlocked;
+        action.unlocked = function () {
+            return unlocked(IdleLoopsAP, IdleLoopsAP.state, this) && this._unlocked();
+        }
+    } else {
+        if (IdleLoopsAP.slotData.logic_vanilla && action.varName in skill_requirements) {
+            const skill_req = skill_requirements[action.varName];
+            action.unlocked = function () {
+                return unlocked(IdleLoopsAP, IdleLoopsAP.state, this) && skill_req()
+            }
+        } else {
+            action.unlocked = function () {
+                return unlocked(IdleLoopsAP, IdleLoopsAP.state, this);
+            }
+        }
     }
 
     // I decided to remove the "Zx" suffix from actions like buymana on the AP side, because it's redundent with the "Zx - blah" notation 
@@ -60,7 +74,6 @@ export function hook_action(IdleLoopsAP, action) {
     setup_scout(IdleLoopsAP, action);
 }
 
-// TODO: If we recieve a hint for a locked action, make it visible with text of the hint?
 function unlocked(IdleLoopsAP, state, action) {
     let defaultVisible = false;
     if (action.type == "limited") {
@@ -110,7 +123,7 @@ export function effectiveLimited(IdleLoopsAP, state, varName) {
                 return limitedObj.max;
             }
         }
-        extra -= Math.max(0, limitedObj.max - (state[`Z${limitedObj.town + 1} - ${limited}`] + (state[`Z${limitedObj.town + 1} - x${limitedObj.bulk} ${limited}`] * limitedObj.bulk)) / limitedObj.bulk);
+        extra -= Math.max(0, limitedObj.max - ((state[`Z${limitedObj.town + 1} - ${limited}`] + (state[`Z${limitedObj.town + 1} - x${limitedObj.bulk} ${limited}`] * limitedObj.bulk)) / limitedObj.bulk));
         if (extra <= 0) {
             break;
         }
@@ -147,7 +160,7 @@ export function lastEffectiveLimited(IdleLoopsAP, state, endVarName) {
         }
 
         const limitedObj = limitedActions[limited];
-        extra -= Math.max(0, limitedObj.max - (state[`Z${limitedObj.town + 1} - ${limited}`] + (state[`Z${limitedObj.town + 1} - x${limitedObj.bulk} ${limited}`] * limitedObj.bulk)) / limitedObj.bulk);
+        extra -= Math.max(0, limitedObj.max - ((state[`Z${limitedObj.town + 1} - ${limited}`] + (state[`Z${limitedObj.town + 1} - x${limitedObj.bulk} ${limited}`] * limitedObj.bulk)) / limitedObj.bulk));
         if (extra <= 0) {
             return endVarName === limited || typeof endVarName === "undefined" ? limited : false;
         }

@@ -40,6 +40,27 @@ export const segments = {
     "HuntTrolls": 5,
 }
 
+export const skill_requirements = {
+    "Heal": () => getSkillLevel("Magic") >= 12,
+    "Fight": () => getSkillLevel("Combat") >= 10,
+    "SDungeon": () => (getSkillLevel("Combat") + getSkillLevel("Magic")) >= 35,
+    "BuySupplies": () => (getSkillLevel("Combat") + getSkillLevel("Magic")) >= 35,
+    "Haggle": () => (getSkillLevel("Combat") + getSkillLevel("Magic")) >= 35,
+    "StartJourney": () => (getSkillLevel("Combat") + getSkillLevel("Magic")) >= 35,
+
+    "Hermit": () => getSkillLevel("Magic") >= 40,
+    "PracticalMagic": () => getSkillLevel("Magic") >= 50,
+    "LearnAlchemy": () => getSkillLevel("Magic") >= 60,
+    "BrewPotions": () => getSkillLevel("Alchemy") >= 10,
+    "Witch": () => getSkillLevel("Magic") >= 80,
+    "DarkMagic": () => getSkillLevel("Magic") >= 100,
+    "DarkRitual": () => getSkillLevel("Dark") >= 50,
+
+    "Chronomancy": () => getSkillLevel("Magic") >= 150,
+    "Pyromancy": () => getSkillLevel("Magic") >= 200,
+    "ImbueMind": () => getSkillLevel("Magic") >= 300,
+}
+
 export const skill_actions = { "WarriorLessons": "Combat", "MageLessons": "Magic", "PracticalMagic": "Practical", "LearnAlchemy": "Alchemy", "DarkMagic": "Dark", "Chronomancy": "Chronomancy", "Pyromancy": "Pyromancy" };
 
 export const localization_strings = [
