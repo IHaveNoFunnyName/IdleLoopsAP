@@ -19,7 +19,7 @@ const scout_select = {
             const next_id = IdleLoopsAP.location_name_to_id[`${skill_map_reverse[skill]} - Level ${next_level}`] ?? false;
 
             if (next_id && IdleLoopsAP.client.room.missingLocations.includes(next_id)) {
-                scout(IdleLoopsAP, els, next_id, `Getting to ${next_level} ${skill_map_reverse[skill]}`, 2);
+                scout(IdleLoopsAP, els, next_id, `Getting to ${next_level} ${skill_map_reverse[skill]}`);
                 return;
             }
         }
@@ -75,7 +75,7 @@ const scout_select = {
                 return no_more_scouts(IdleLoopsAP, els);
             }
             if (IdleLoopsAP.client.room.missingLocations.includes(id)) {
-                return scout(IdleLoopsAP, els, id, `Completion #${n}`, 2);
+                return scout(IdleLoopsAP, els, id, `Completion #${n}`);
             }
             n++;
         }

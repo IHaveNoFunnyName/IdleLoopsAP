@@ -69,7 +69,7 @@ function unlocked(IdleLoopsAP, state, action) {
     return defaultVisible || `Z${action.townNum + 1} - ${action.varName}` in state;
 }
 
-// Unsure if to have these two here on in a utils.js, eh
+// Unsure if to have these two here on in a zone.js, eh
 export function effectiveLimited(IdleLoopsAP, state, varName) {
     let extra = state["Filler - Progressive Lootable"];
     let oldExtra = extra;
@@ -103,24 +103,24 @@ export function effectiveLimited(IdleLoopsAP, state, varName) {
 
         const limitedObj = limitedActions[limited];
         if (varName === limited) {
-            extra -= Math.max(0, limitedObj.max - state[`Z${limitedObj.town + 1} - ${limited}`]);
+            extra -= Math.max(0, limitedObj.max - (state[`Z${limitedObj.town + 1} - ${limited}`] + (state[`Z${limitedObj.town + 1} - x${limitedObj.bulk} ${limited}`] * limitedObj.bulk)));
             if (extra <= 0) {
-                return state[`Z${limitedObj.town + 1} - ${limited}`] + oldExtra;
+                return (state[`Z${limitedObj.town + 1} - ${limited}`] + (state[`Z${limitedObj.town + 1} - x${limitedObj.bulk} ${limited}`] * limitedObj.bulk)) + (oldExtra * limitedObj.bulk);
             } else {
                 return limitedObj.max;
             }
         }
-        if (varName === limited) {
-            return state[`Z${limitedObj.town + 1} - ${limited}`];
-        }
-        extra -= Math.max(0, limitedObj.max - state[`Z${limitedObj.town + 1} - ${limited}`]);
+        extra -= Math.max(0, limitedObj.max - (state[`Z${limitedObj.town + 1} - ${limited}`] + (state[`Z${limitedObj.town + 1} - x${limitedObj.bulk} ${limited}`] * limitedObj.bulk)) / limitedObj.bulk);
         if (extra <= 0) {
             break;
         }
         oldExtra = extra;
     }
-
-    return state[`Z${limitedActions?.[varName]?.town + 1} - ${varName}`];
+    const limitedObj = limitedActions[varName];
+    if (!limitedObj) {
+        return 0;
+    }
+    return state[`Z${limitedObj.town + 1} - ${varName}`] + (state[`Z${limitedObj.town + 1} - x${limitedObj.bulk} ${varName}`] * limitedObj.bulk);
 }
 
 export function lastEffectiveLimited(IdleLoopsAP, state, endVarName) {
@@ -147,7 +147,7 @@ export function lastEffectiveLimited(IdleLoopsAP, state, endVarName) {
         }
 
         const limitedObj = limitedActions[limited];
-        extra -= Math.max(0, limitedObj.max - state[`Z${limitedObj.town + 1} - ${limited}`]);
+        extra -= Math.max(0, limitedObj.max - (state[`Z${limitedObj.town + 1} - ${limited}`] + (state[`Z${limitedObj.town + 1} - x${limitedObj.bulk} ${limited}`] * limitedObj.bulk)) / limitedObj.bulk);
         if (extra <= 0) {
             return endVarName === limited || typeof endVarName === "undefined" ? limited : false;
         }

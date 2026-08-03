@@ -81,6 +81,10 @@ class IdleLoopsAP_class {
             this.item(item.name, true);
         }
 
+        // Restart after recieving items so the starting state has items.
+        restart();
+        view.update();
+
         // Should be in vanilla overwrites? Well, it's just one line and fits with the above.
         gameSpeed = (1 + (0.1 * this.state["Filler - +0.1 Game Speed"])) * this.slotData.game_speed;
 
@@ -141,12 +145,21 @@ class IdleLoopsAP_class {
     item(x, old = false) {
         let [zone, action, ...rest] = x.split(" - ");
         if (zone.startsWith("Z")) {
+            let bulk = false;
+            if (action.startsWith("x")) {
+                let restAction;
+                [bulk, ...restAction] = action.split(" ");
+                action = restAction.join(" ");
+            }
             action = name_map[action] ?? action;
             if (action === "BuyMana") {
                 action = "BuyManaZ" + zone.substring(1);
             }
             if (action === "APShop") {
                 action = "APShopZ" + zone.substring(1);
+            }
+            if (bulk) {
+                action = bulk + " " + action;
             }
             x = [zone, action, ...rest].join(" - ");
         }
