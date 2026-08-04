@@ -50,6 +50,10 @@ const scout_select = {
     limited: (IdleLoopsAP, els, town, varName) => {
         const next = Math.floor(towns[town][`checked${varName}`] / limitedActions[varName].ratio) + 1;
         const next_id = IdleLoopsAP.location_name_to_id[`Z${town + 1} - ${name_map_reverse[varName]} - #${next}`] ?? false;
+        if (!IdleLoopsAP.state[`Z${town + 1} - ${varName} - Search`]) {
+            no_more_scouts(IdleLoopsAP, els, `You need "Z${town + 1} - ${name_map_reverse[varName]} - Search" to find items here.`);
+            return;
+        }
         if (next_id && IdleLoopsAP.client.room.missingLocations.includes(next_id)) {
             scout(IdleLoopsAP, els, next_id, `The next ${name_map_reverse[varName]}`);
             return;
@@ -144,8 +148,8 @@ async function scout(IdleLoopsAP, els, id, message, hint = 0) {
     }
 }
 
-async function no_more_scouts(IdleLoopsAP, els) {
+async function no_more_scouts(IdleLoopsAP, els, message = "No more items") {
     for (const el of els) {
-        el.textContent = "No more checks";
+        el.textContent = message;
     }
 }

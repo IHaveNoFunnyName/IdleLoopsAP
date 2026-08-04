@@ -1,5 +1,5 @@
 import { hook_action, effectiveLimited } from "./action.js"
-import { limitedActions, name_map_reverse } from "./data.js"
+import { limitedActions, name_map_reverse, segments } from "./data.js"
 
 // Since this funtion is basically static to the function we use window.IdleLoopsAP rather than it handed down via property.
 // It's that or define it again each call.

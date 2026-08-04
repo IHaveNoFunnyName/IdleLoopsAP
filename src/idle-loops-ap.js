@@ -25,6 +25,7 @@ class IdleLoopsAP_class {
     predictor = false;
     newUI = false;
     goalAction = "";
+    expMult = 1;
 
     /**
      * Injects the AP connect form.
@@ -43,6 +44,7 @@ class IdleLoopsAP_class {
         this.slotData = slotData;
         this.location_name_to_id = location_name_to_id;
         this.goalAction = ["StartJourney", "ContinueOn", "StartTrek", "FaceJudgement"][slotData.goal];
+        this.expMult = slotData.stat_exp_mult;
 
         // Hook predictor first so the web worker doesn't freak out.
         this.predictor = hook_predictor(this);
@@ -184,9 +186,10 @@ class IdleLoopsAP_class {
             if (action === "+0.1 Game Speed") {
                 gameSpeed = (1 + (0.1 * this.state[x])) * this.slotData.game_speed;
             } else if (action === "+0.1 Exp Multiplier") {
+                this.expMult = this.slotData.stat_exp_mult * (1 + (0.1 * this.state[x]));
                 const els = document.querySelectorAll(".ap-mult");
                 for (const el of els) {
-                    el.textContent = `${this.slotData.stat_exp_mult * (1 + (0.1 * this.state[x]))}x`;
+                    el.textContent = `${this.expMult}x`;
                 }
             } else if (action === "Progressive Lootable") {
                 const effective = lastEffectiveLimited(this, this.state);
