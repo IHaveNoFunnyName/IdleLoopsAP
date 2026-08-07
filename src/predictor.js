@@ -14,6 +14,11 @@ export function hook_predictor(IdleLoopsAP) {
             predictor = Koviko;
         }
 
+        if (!predictor.cache) {
+            // We're on dmchurch but predictor isn't enabled
+            return false;
+        }
+
         function proxify(skills) {
             return new Proxy(skills, {
                 set: (target, prop, value) => {
@@ -27,7 +32,7 @@ export function hook_predictor(IdleLoopsAP) {
         const predict = function (prediction, state) {
             if (Object.values(state.stats).every(stat => stat === 0)) {
                 state.resources.mana += (50 * IdleLoopsAP.state["Filler - 50 Starting Mana"]);
-                state.resources.gold += IdleLoopsAP.state["Filler - 1 Starting Gold"]
+                state.resources.gold += IdleLoopsAP.state["Filler - 1 Starting Gold"];
 
                 // Unlike the note with handling skill exp mult in action.js
                 state.skills = proxify(state.skills);
@@ -86,7 +91,9 @@ export function hook_predictor(IdleLoopsAP) {
 }
 
 export function predictor_add_actions(predictor) {
-    for (const name in new_actions_for_predictor) {
-        predictor.predictions[name] = new predictor.predictions["Wander"].constructor(name, new_actions_for_predictor[name]);
+    if (predictor) {
+        for (const name in new_actions_for_predictor) {
+            predictor.predictions[name] = new predictor.predictions["Wander"].constructor(name, new_actions_for_predictor[name]);
+        }
     }
 }
