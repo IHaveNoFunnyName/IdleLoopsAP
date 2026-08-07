@@ -61,6 +61,13 @@ export const skill_requirements = {
     "ImbueMind": () => getSkillLevel("Magic") >= 300,
 }
 
+export const unhides = {
+    "ThrowParty": "Met",
+    "Thicket": "WildMana",
+    "Shortcut": "Herbs",
+    "Flowers": "Herbs",
+}
+
 export const skill_actions = { "WarriorLessons": "Combat", "MageLessons": "Magic", "PracticalMagic": "Practical", "LearnAlchemy": "Alchemy", "DarkMagic": "Dark", "Chronomancy": "Chronomancy", "Pyromancy": "Pyromancy" };
 
 export const localization_strings = [

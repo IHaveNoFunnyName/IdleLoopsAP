@@ -1,7 +1,0 @@
-#infoContainerMet:not(.user-hidden) {
-    display: contents !important;
-}
-
-:root.editing-hidden-vars #infoContainerMet.user-hidden {
-    display: contents !important;
-}

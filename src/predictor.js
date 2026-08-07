@@ -1,5 +1,9 @@
 import { new_actions_for_predictor } from "./data.js";
 
+export function enable_predictor() {
+    setOption("predictor", true);
+}
+
 export function hook_predictor(IdleLoopsAP) {
     // If the Predictor is installed, hook into it to handle starting items
     // Requires the predictor to already be initialised. Skill issue if you click it before the page fully loads. Be worse.
@@ -31,8 +35,13 @@ export function hook_predictor(IdleLoopsAP) {
 
         const predict = function (prediction, state) {
             if (Object.values(state.stats).every(stat => stat === 0)) {
-                state.resources.mana += (50 * IdleLoopsAP.state["Filler - 50 Starting Mana"]);
+                let extra_mana = 50 * IdleLoopsAP.state["Filler - 50 Starting Mana"];
+                state.resources.mana += extra_mana;
                 state.resources.gold += IdleLoopsAP.state["Filler - 1 Starting Gold"];
+
+                let time = extra_mana / getSpeedMult(state.resources.town);
+                state.resources.totalTicks += time;
+                state.resources.actionTicks += time;
 
                 // Unlike the note with handling skill exp mult in action.js
                 state.skills = proxify(state.skills);
@@ -48,6 +57,15 @@ export function hook_predictor(IdleLoopsAP) {
                 }
             }
         }
+
+        document.addEventListener("predictor-update", () => {
+            const string = predictor.totalDisplay.innerHTML;
+            const split = string.split(" | ");
+            if (/^[-\d.]+$/.test(split[0])) {
+                split[0] = intToString(parseInt(split[0]) + (IdleLoopsAP.state["Filler - 50 Starting Mana"] * 50));
+                predictor.totalDisplay.innerHTML = split.join(" | ");
+            }
+        });
 
         // ...And the skill exp mult breaks the cache as structuredClone fails on a Proxy
         // So - if it exists with probably a way too safe check -

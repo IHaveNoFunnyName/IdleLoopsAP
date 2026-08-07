@@ -289,3 +289,8 @@ export function previous_locations(IdleLoopsAP) {
         }
     }
 }
+export function unhide(action) {
+    const style = document.createElement("style");
+    style.innerHTML = `#infoContainer${action}:not(.user-hidden){display:contents!important}:root.editing-hidden-vars #infoContainer${action}.user-hidden{display:contents!important}`;
+    document.head.appendChild(style);
+}

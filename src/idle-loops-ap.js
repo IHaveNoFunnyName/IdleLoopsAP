@@ -1,12 +1,11 @@
 import { create_form } from "./connect.js";
-import { ap_load, update_ap_tooltip, vanilla_overwrites, previous_locations } from "./vanilla_stuff.js";
+import { ap_load, update_ap_tooltip, vanilla_overwrites, previous_locations, unhide } from "./vanilla_stuff.js";
 import { hook_predictor, predictor_add_actions } from "./predictor.js";
 import { hook_town } from "./zone.js";
 import { hook_action, lastEffectiveLimited } from "./action.js";
 import { hook_skill, hook_buff } from "./skills.js";
-import unhidemetCss from "./styles/unhidemet.scss";
 
-import { name_map, name_map_reverse, bar_locations, skill_locations, limitedActions, segments } from "./data.js";
+import { name_map, name_map_reverse, bar_locations, skill_locations, limitedActions, segments, unhides } from "./data.js";
 
 class IdleLoopsAP_class {
     client = false;
@@ -205,10 +204,10 @@ class IdleLoopsAP_class {
             const effective = lastEffectiveLimited(this, this.state);
             if (!old) this.log(`Progressive Lootable had the effect of an extra ${name_map_reverse[effective]}`);
             view.updateRegular({ name: effective, index: limitedActions[effective].town });
-        } else if (action === "ThrowParty") {
-            const unhideMet = document.createElement("style");
-            unhideMet.innerHTML = unhidemetCss;
-            document.head.appendChild(unhideMet);
+        } else if (unhides?.[action]) {
+            // If an multiple actions give a town info container, vanilla only shows it when the first one is finished.
+            // So we have to unhide the others
+            unhide(unhides[action]);
         }
         update_ap_tooltip(this);
     }

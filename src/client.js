@@ -1,4 +1,5 @@
 import * as AP from "./archipelago.min.js";
+import { enable_predictor } from "./predictor.js";
 
 async function connect(IdleLoopsAP, { host, port, slotName, options }, callback) {
     const client = new AP.Client();
@@ -9,6 +10,13 @@ async function connect(IdleLoopsAP, { host, port, slotName, options }, callback)
     } catch (err) {
         alert("Connection failed: " + err);
         return false;
+    }
+    // On the new UI the predictor can be toggled
+    // but we need it to exist *on connect* to hook it.
+    if (IdleLoopsAP.newUI) {
+        enable_predictor();
+        restart();
+        await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     client.messages.on("message", (...content) => {
