@@ -183,7 +183,7 @@ class IdleLoopsAP_class {
             if (rest.length === 0) {
                 const lastEffective = lastEffectiveLimited(this, this.state, action);
                 if (lastEffective && lastEffective !== action) {
-                    if (!old) this.log(`Due to Progressive Lootables, ${x} has the effect of adding an extra ${name_map_reverse[lastEffective]} instead`);
+                    if (!old) this.log(`Due to Progressive Lootables, ${x} had the effect of an extra ${name_map_reverse[lastEffective]} instead`);
                     view.updateRegular({ name: lastEffective, index: +(zone.substring(1)) - 1 });
                 }
             } else if (rest[0] === "Search") {

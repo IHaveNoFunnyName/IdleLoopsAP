@@ -141,6 +141,7 @@ export function effectiveLimited(IdleLoopsAP, state, varName) {
 export function lastEffectiveLimited(IdleLoopsAP, state, endVarName) {
     let extra = state["Progressive Lootable"];
     let oldExtra = extra;
+    let past_self = false;
 
     if ((state["Z1 - LQuests"]) < 2) {
         extra -= Math.max(0, 2 - state["Z1 - LQuests"]);
@@ -150,8 +151,12 @@ export function lastEffectiveLimited(IdleLoopsAP, state, endVarName) {
             }
             return false;
         }
-        if (oldExtra !== extra && (state["Z1 - SQuests"] + extra >= 20)) {
-            extra += oldExtra - extra;
+        if (oldExtra !== extra) {
+            if (state["Z1 - SQuests"] + extra >= 20) {
+                extra += oldExtra - extra;
+            } else if (endVarName === "LQuests") {
+                return "SQuests";
+            }
         }
     }
 
@@ -160,14 +165,13 @@ export function lastEffectiveLimited(IdleLoopsAP, state, endVarName) {
         if (limitedActions[limited].town > IdleLoopsAP.slotData.goal) {
             continue;
         }
-
         const limitedObj = limitedActions[limited];
         extra -= Math.max(0, limitedObj.max - ((state[`Z${limitedObj.town + 1} - ${limited}`] + (state[`Z${limitedObj.town + 1} - x${limitedObj.bulk} ${limited}`] * limitedObj.bulk)) / limitedObj.bulk));
         if (extra <= 0) {
-            return endVarName === limited || typeof endVarName === "undefined" ? limited : false;
+            return past_self || typeof endVarName === "undefined" ? limited : false;
         }
         if (endVarName === limited) {
-            return false;
+            past_self = true;
         }
         oldExtra = extra;
     }
