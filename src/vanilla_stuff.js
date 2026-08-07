@@ -1,5 +1,6 @@
 import styleCss from "./styles/style.scss";
-import { name_map_reverse, limitedActions, new_actions, localization_strings } from "./data.js";
+import colorsCss from "./styles/color.scss";
+import { name_map_reverse, skill_map_reverse, limitedActions, new_actions, localization_strings } from "./data.js";
 import { hook_action } from "./action.js";
 
 const apStateHover = document.createElement("div");
@@ -32,6 +33,12 @@ export function setup_ui(IdleLoopsAP) {
     const css = document.createElement("style");
     css.textContent = styleCss;
     document.head.appendChild(css);
+
+    if ((!IdleLoopsAP.newUI) && IdleLoopsAP.slotData.mod_color) {
+        const colorcss = document.createElement("style");
+        colorcss.textContent = colorsCss;
+        document.head.appendChild(colorcss);
+    }
 
     if (IdleLoopsAP.slotData.mod_ui_crime) {
         const limiteds = document.querySelectorAll(".townInfoContainer");
@@ -206,13 +213,15 @@ export function add_actions() {
     }
 }
 
-export function update_ap_state(state) {
-    let string = "<div>AP Filler Items</div><p>";
-    for (const key in state) {
-        if (key.startsWith("Filler - ")) {
-            string += `${key.substring(9)}: ${state[key]}<br>`;
-        }
-    }
+export function update_ap_tooltip(IdleLoopsAP) {
+    let string = "<div>AP State</div><p>";
+    string += `Progressive Lootable: ${IdleLoopsAP.state["Progressive Lootable"]}<br>`;
+    string += `Game Speed: ${gameSpeed.toFixed(2)}x<br>`;
+    string += `Exp Multiplier: ${IdleLoopsAP.expMult.toFixed(2)}x<br>`;
+    string += `Skill Exp Multiplier: ${IdleLoopsAP.slotData.skill_exp_mult.toFixed(2)}x<br>`;
+    string += `Starting Mana: ${250 + IdleLoopsAP.state["Filler - 50 Starting Mana"] * 50}<br>`;
+    string += `Starting Gold: ${IdleLoopsAP.state["Filler - 1 Starting Gold"]}<br>`;
+    string += `Nothing: ${IdleLoopsAP.state["Filler - Nothing"]}`;
     stateNode.innerHTML = string + "</p>";
 }
 
@@ -238,7 +247,7 @@ export function vanilla_overwrites(state) {
     resetResources = () => {
         resources = copyObject(resourcesTemplate);
         resources.gold = state["Filler - 1 Starting Gold"];
-        if (state["Z1 - Buy Glasses"] > 1) addResource("glasses", true);
+        if (state["Z1 - BuyGlasses"] > 1) addResource("glasses", true);
         view.requestUpdate("updateResources", null);
     }
 }
@@ -270,13 +279,13 @@ export function previous_locations(IdleLoopsAP) {
     for (const skill in skills) {
         let level = getSkillLevel(skill);
         for (let i = 1; i <= level; i++) {
-            IdleLoopsAP.location(`${name_map_reverse[skill]} - Level ${i}`);
+            IdleLoopsAP.location(`${skill_map_reverse[skill]} - Level ${i}`);
         }
     }
     for (const buff in buffs) {
         let level = buffs[buff].amt;
         for (let i = 1; i <= level; i++) {
-            IdleLoopsAP.location(`${name_map_reverse[buff]} - Level ${i}`);
+            IdleLoopsAP.location(`${skill_map_reverse[buff]} ${i}`);
         }
     }
 }

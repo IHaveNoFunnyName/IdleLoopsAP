@@ -1,3 +1,5 @@
+import { skill_map_reverse } from "./data.js";
+
 export function hook_skill(IdleLoopsAP, skill) {
     if (IdleLoopsAP.newUI) {
         skills[skill].levelExp.addExp = function (exp) {
@@ -5,7 +7,7 @@ export function hook_skill(IdleLoopsAP, skill) {
             const success = LevelExp.prototype.addExp.call(this, exp);
             const newLevel = getSkillLevel(skill);
             for (let i = prevLevel + 1; i <= newLevel; i++) {
-                IdleLoopsAP.location(`${skill} - Level ${i}`);
+                IdleLoopsAP.location(`${skill_map_reverse[skill]} - Level ${i}`);
             }
         }
         return skills[skill];
@@ -19,7 +21,7 @@ export function hook_skill(IdleLoopsAP, skill) {
                 const success = Reflect.set(target, prop, value, receiver);
                 const newLevel = getSkillLevel(skill);
                 for (let i = prevLevel + 1; i <= newLevel; i++) {
-                    IdleLoopsAP.location(`${skill} - Level ${i}`);
+                    IdleLoopsAP.location(`${skill_map_reverse[skill]} - Level ${i}`);
                 }
                 return success;
             }
@@ -34,9 +36,7 @@ export function hook_buff(IdleLoopsAP, buff) {
             const success = Reflect.set(target, prop, value, receiver);
             const newLevel = value;
             for (let i = prevLevel + 1; i <= newLevel; i++) {
-                if (IdleLoopsAP.location_name_to_id[`${buff} - Level ${i}`]) {
-                    IdleLoopsAP.location(`${buff} - Level ${i}`);
-                }
+                IdleLoopsAP.location(`${skill_map_reverse[buff]} - ${i}`);
             }
             return success;
         }

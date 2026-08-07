@@ -1,5 +1,5 @@
 import { create_form } from "./connect.js";
-import { ap_load, update_ap_state, vanilla_overwrites, previous_locations } from "./vanilla_stuff.js";
+import { ap_load, update_ap_tooltip, vanilla_overwrites, previous_locations } from "./vanilla_stuff.js";
 import { hook_predictor, predictor_add_actions } from "./predictor.js";
 import { hook_town } from "./zone.js";
 import { hook_action, lastEffectiveLimited } from "./action.js";
@@ -88,7 +88,7 @@ class IdleLoopsAP_class {
         view.update();
 
         // Should be in vanilla overwrites? Well, it's just one line and fits with the above.
-        gameSpeed = (1 + (0.1 * this.state["Filler - +0.1 Game Speed"])) * this.slotData.game_speed;
+        gameSpeed = (1 + (0.1 * this.state["+0.1 Game Speed"])) * this.slotData.game_speed;
 
 
         if (this.predictor) this.predictor.cache.reset();
@@ -98,35 +98,47 @@ class IdleLoopsAP_class {
     }
     // additional is for the predictor, which needs to know more than the cost of the next one.
     nextShop(town, additional = 0) {
-        let count = this.slotData[`location_z${town + 1}_shop`] ?? 10;
-        if (count === 0) {
-            return false;
-        }
-
+        let count = 10;
         let num = 1;
         let id;
+        let expensive = "";
         while (true) {
-            id = this.location_name_to_id[`Z${town + 1} - AP Shop - #${num}`] ?? false;
-            if (!id) {
-                return false;
-            }
+            id = this.location_name_to_id[`Z${town + 1} - AP Shop - #${num}`];
             if (this.client.room.missingLocations.includes(id)) {
+                break;
+            }
+            if (num == count) {
                 break;
             }
             num++;
         }
-        if (num + additional > count) {
-            return false;
+        // Dumb solution to just copying the check here instead of refactoring the function
+        // Without it went straight from #9 > expensive #1
+        if (!this.client.room.missingLocations.includes(id) && (num + additional) >= count) {
+            additional = count - num;
+            expensive = "_expensive";
+            num = 1;
+            while (true) {
+                id = this.location_name_to_id[`Z${town + 1} - AP Shop (Expensive) - #${num}`];
+                if (num > count) {
+                    return false;
+                }
+                if (this.client.room.missingLocations.includes(id)) {
+                    break;
+                }
+                num++;
+            }
         }
-        const max = this.slotData[`z${town + 1}_shop_max`] ?? 300;
-        // Only way we get here is if there's one item in the shop and we haven't bought it.
+        const max = expensive ? this.slotData[`z${town + 1}_shop${expensive}_max`] : { 0: 200, 2: 1000 }[town];
+
+        // Only way we get here is if there's one item in the shop and we haven't bought it
+        // And I want that to cost max, not min
         if (count === 1) {
-            return max;
+            return [id, max];
         }
 
-        const min = this.slotData[`z${town + 1}_shop_min`] ?? 50;
+        const min = expensive ? 300 : { 0: 50, 2: 500 }[town];
         const step = (max - min) / (count - 1);
-
         return [id, Math.floor(((min + 1) + (step * (num - 1 + additional))) / 10) * 10];
     }
 
@@ -181,27 +193,24 @@ class IdleLoopsAP_class {
                 }
             }
             view.updateRegular({ name: action, index: +(zone.substring(1)) - 1 });
-        } else if (zone === "Filler") {
-            // Starting mana and gold are handled elsewhere
-            if (action === "+0.1 Game Speed") {
-                gameSpeed = (1 + (0.1 * this.state[x])) * this.slotData.game_speed;
-            } else if (action === "+0.1 Exp Multiplier") {
-                this.expMult = this.slotData.stat_exp_mult * (1 + (0.1 * this.state[x]));
-                const els = document.querySelectorAll(".ap-mult");
-                for (const el of els) {
-                    el.textContent = `${this.expMult}x`;
-                }
-            } else if (action === "Progressive Lootable") {
-                const effective = lastEffectiveLimited(this, this.state);
-                if (!old) this.log(`Progressive Lootable had the effect of an extra ${name_map_reverse[effective]}`);
-                view.updateRegular({ name: effective, index: limitedActions[effective].town });
+        } else if (x === "+0.1 Game Speed") {
+            gameSpeed = (1 + (0.1 * this.state[x])) * this.slotData.game_speed;
+        } else if (x === "+0.1 Exp Multiplier") {
+            this.expMult = this.slotData.stat_exp_mult * (1 + (0.1 * this.state[x]));
+            const els = document.querySelectorAll(".ap-mult");
+            for (const el of els) {
+                el.textContent = `${this.expMult}x`;
             }
-            update_ap_state(this.state);
+        } else if (x === "Progressive Lootable") {
+            const effective = lastEffectiveLimited(this, this.state);
+            if (!old) this.log(`Progressive Lootable had the effect of an extra ${name_map_reverse[effective]}`);
+            view.updateRegular({ name: effective, index: limitedActions[effective].town });
         } else if (action === "ThrowParty") {
             const unhideMet = document.createElement("style");
             unhideMet.innerHTML = unhidemetCss;
             document.head.appendChild(unhideMet);
         }
+        update_ap_tooltip(this);
     }
 
     log(x) {

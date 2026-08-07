@@ -9,11 +9,11 @@ const buildOptions = {
     bundle: true,
     minify: true,
     target: "es2022",
-    sourcemap: "linked",
     plugins: [sassPlugin({ type: "css-text", style: "compressed", sourceMap: false })],
 };
 
 if (watch) {
+    buildOptions.sourcemap = "linked";
     const ctx = await esbuild.context(buildOptions);
     await ctx.watch();
     const { hosts, port } = await ctx.serve({ servedir: ".", port: 8000, cors: { origin: "*" } });

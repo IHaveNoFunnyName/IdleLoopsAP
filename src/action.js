@@ -51,7 +51,9 @@ export function hook_action(IdleLoopsAP, action) {
             }
         }
         // We only need this for first finish locations
-        // So unhooking stops a bunch of processsing on the most common occurance in the game.
+        // So unhooking stops a bunch of processsing on the most common occurance in the game.'
+        // It seems like it's not persisting across loops, but it is only trying once in a loop
+        // i guess something in the game copies actions into the list and processes them there.
         this.finish = this._finish;
         return this._finish();
     }
@@ -84,7 +86,7 @@ function unlocked(IdleLoopsAP, state, action) {
 
 // Unsure if to have these two here on in a zone.js, eh
 export function effectiveLimited(IdleLoopsAP, state, varName) {
-    let extra = state["Filler - Progressive Lootable"];
+    let extra = state["Progressive Lootable"];
     let oldExtra = extra;
 
     // Edge case for LQuests, we want an extra 'fake' LQuests with max 2, to guarantee 2 rep.
@@ -137,7 +139,7 @@ export function effectiveLimited(IdleLoopsAP, state, varName) {
 }
 
 export function lastEffectiveLimited(IdleLoopsAP, state, endVarName) {
-    let extra = state["Filler - Progressive Lootable"];
+    let extra = state["Progressive Lootable"];
     let oldExtra = extra;
 
     if ((state["Z1 - LQuests"]) < 2) {

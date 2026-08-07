@@ -39,18 +39,19 @@ export function nodes_to_message(IdleLoopsAP, nodes, el) {
     for (const node of nodes) {
         const nodeElement = document.createElement("span");
         nodeElement.innerText = node.text;
-        nodeElement.style.fontWeight = "bold";
 
         switch (node.type) {
             case "entrance":
             case "location":
                 nodeElement.classList.add("ap-" + node.type);
+                nodeElement.classList.add("ap-color");
                 break;
 
             case "color":
                 // not really correct, but technically the only color nodes the server returns is "green" or "red"
                 // so it's fine enough for an example.
                 nodeElement.style.color = node.color;
+                nodeElement.style.fontWeight = "bold";
                 break;
 
             case "player":
@@ -59,6 +60,8 @@ export function nodes_to_message(IdleLoopsAP, nodes, el) {
                 } else {
                     nodeElement.classList.add("ap-player-other");
                 }
+                nodeElement.classList.add("ap-color");
+                nodeElement.style.fontWeight = "bold";
                 break;
 
             case "item": {
@@ -72,6 +75,8 @@ export function nodes_to_message(IdleLoopsAP, nodes, el) {
                 } else {
                     nodeElement.classList.add("ap-item");
                 }
+                nodeElement.classList.add("ap-color");
+                nodeElement.style.fontWeight = "bold";
                 break;
             }
 

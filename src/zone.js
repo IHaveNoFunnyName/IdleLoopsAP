@@ -63,14 +63,14 @@ export function hook_town(IdleLoopsAP, town) {
                 if (!name.startsWith("Temp")) {
                     const rewardRatio = limitedActions[name].ratio;
                     IdleLoopsAP.location(`Z${town + 1} - ${name_map_reverse[name]} - #${Math.floor(target['checked' + name] / rewardRatio)}`);
-                    IdleLoopsAP.location(`Z${town + 1} - x10 ${name_map_reverse[name]} - #${Math.floor(target['checked' + name] / (rewardRatio * 10))}`);
+                    IdleLoopsAP.location(`Z${town + 1} - x10 ${name_map_reverse[name]} - #${Math.floor(target['checked' + name] / (rewardRatio * limitedActions[name].bulk))}`);
                     return true;
                 }
             }
 
             // Location: Gaining a Progress Bar %
-            // We could get this by overwriting town.finishProgress, but right now i prefer to do as much as possible via proxies
-            // Just documenting alternate solutions to get a head start later if this ends up broken
+            // We could also do this by overwriting town.finishProgress
+            // Noting in case it's useful for progressanity
             if (typeof prop === "string" && prop.startsWith("exp")) {
                 const name = prop.substring(3);
                 const prevLevel = target.getLevel(name);

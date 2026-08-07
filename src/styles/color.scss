@@ -1,0 +1,9 @@
+body.t-dark {
+
+    .segmentBar,
+    #timeBar,
+    #actionList .showthat .koviko:not(.showthis),
+    .ap-color {
+        filter: invert(1);
+    }
+}

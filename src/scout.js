@@ -141,9 +141,9 @@ async function scout(IdleLoopsAP, els, id, message, hint = 0) {
         // Assume shop when message is not a string. (and that it's a number instead)
         // Inelegant
         if (typeof message === "string") {
-            el.innerHTML = `${message} will grant ${scout[0].receiver.name}'s <span class="bold ap-item${className}">${scout[0].name}</span>`;
+            el.innerHTML = `${message} will grant ${scout[0].receiver.name}'s <span class="bold ap-color ap-item${className}">${scout[0].name}</span>`;
         } else {
-            el.innerHTML = `It's selling ${scout[0].receiver.name}'s <span class="bold ap-item${className}">${scout[0].name}</span> for ${message} gold.`;
+            el.innerHTML = `It's selling ${scout[0].receiver.name}'s <span class="bold ap-color ap-item${className}">${scout[0].name}</span> for ${message} gold.`;
         }
     }
 }
