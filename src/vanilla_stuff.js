@@ -76,8 +76,9 @@ export function setup_ui(IdleLoopsAP) {
     const logElement = document.createElement("ul");
     IdleLoopsAP.logElement = logElement;
     logElement.id = "apLog";
-    logElement.style.overflowY = "scroll";
-
+    if (IdleLoopsAP.newUI) {
+        logElement.style.overflowY = "scroll";
+    }
     const messageElement = document.createElement("div");
     messageElement.id = "apMessage";
     messageElement.style.display = "flex";
