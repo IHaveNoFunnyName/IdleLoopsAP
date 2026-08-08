@@ -64,10 +64,10 @@ export function hook_action(IdleLoopsAP, action) {
             get: (target, prop, receiver) => {
                 let exp = Reflect.get(target, prop, receiver);
                 if (typeof exp === "function") {
-                    return () => exp() * IdleLoopsAP.slotData.skill_exp_mul;
+                    return () => Math.floor(exp() * (IdleLoopsAP.slotData.skill_exp_mul ?? 1));
                 }
-                exp *= IdleLoopsAP.slotData.skill_exp_mult;
-                return exp;
+                exp *= (IdleLoopsAP.slotData.skill_exp_mult ?? 1);
+                return Math.floor(exp);
             }
         });
         view.requestUpdate("adjustExpGain", action);
