@@ -64,7 +64,7 @@ export function hook_action(IdleLoopsAP, action) {
             get: (target, prop, receiver) => {
                 let exp = Reflect.get(target, prop, receiver);
                 if (typeof exp === "function") {
-                    exp = exp();
+                    return () => exp() * IdleLoopsAP.slotData.skill_exp_mul;
                 }
                 exp *= IdleLoopsAP.slotData.skill_exp_mult;
                 return exp;
