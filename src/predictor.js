@@ -38,6 +38,7 @@ export function hook_predictor(IdleLoopsAP) {
                 let extra_mana = 50 * IdleLoopsAP.state["Filler - 50 Starting Mana"];
                 state.resources.mana += extra_mana;
                 state.resources.gold += IdleLoopsAP.state["Filler - 1 Starting Gold"];
+                state.resources.glasses = IdleLoopsAP.state["Z1 - BuyGlasses"] > 1;
 
                 let time = extra_mana / getSpeedMult(state.resources.town);
                 state.resources.totalTicks += time;
