@@ -95,7 +95,7 @@ export function setup_ui(IdleLoopsAP) {
     messageSend.textContent = "Send";
 
     const send = () => {
-        const input = document.getElementById("apMessageInput");
+        const input = document.getElementById("apMessageInput") as HTMLInputElement;
         if (input.value.length > 0) {
             IdleLoopsAP.client.messages.say(input.value);
             input.value = "";
@@ -179,7 +179,7 @@ function loc(path, text, lib) {
 }
 
 function replace_image() {
-    for (const el of document.querySelectorAll('[src="img/aPShopZ1.svg"]')) {
+    for (const el of document.querySelectorAll<HTMLImageElement>('[src="img/aPShopZ1.svg"]')) {
         el.src = "https://ihavenofunnyname.github.io/IdleLoopsAP/black-icon.svg";
     }
 }

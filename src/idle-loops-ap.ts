@@ -8,7 +8,8 @@ import { hook_skill, hook_buff } from "./skills.js";
 import { name_map, name_map_reverse, bar_locations, skill_locations, limitedActions, segments, unhides } from "./data.js";
 
 class IdleLoopsAP_class {
-    client = false;
+    version = { "min": "0.4.2", "max": "0.4.4" };
+    client: any = false;
     offlineTime = 0;
     // Return 0 on miss without having to like put a .get() everywhere
     state = new Proxy({}, {
@@ -20,11 +21,14 @@ class IdleLoopsAP_class {
             }
         }
     });
+    slotData;
     scouts = {};
-    predictor = false;
+    predictor: any = false;
     newUI = false;
     goalAction = "";
     expMult = 1;
+    location_name_to_id = {};
+    logElement: any = false;
 
     /**
      * Injects the AP connect form.
@@ -201,7 +205,7 @@ class IdleLoopsAP_class {
                 el.textContent = `${this.expMult}x`;
             }
         } else if (x === "Progressive Lootable") {
-            const effective = lastEffectiveLimited(this, this.state);
+            const effective = lastEffectiveLimited(this, this.state) as string;
             if (!old) this.log(`Progressive Lootable had the effect of an extra ${name_map_reverse[effective]}`);
             view.updateRegular({ name: effective, index: limitedActions[effective].town });
         } else if (unhides?.[action]) {

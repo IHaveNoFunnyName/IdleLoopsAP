@@ -10,7 +10,8 @@
         "dev": "npm run watch"
     },
     "devDependencies": {
-        "esbuild": "^0.27.0"
+        "esbuild": "^0.27.0",
+        "typescript": "^7.0.2"
     },
     "dependencies": {
         "esbuild-sass-plugin": "^3.7.0"

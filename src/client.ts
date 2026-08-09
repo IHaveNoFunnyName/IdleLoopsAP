@@ -1,16 +1,30 @@
 import * as AP from "./archipelago.min.js";
 import { enable_predictor } from "./predictor.js";
 
+/** @typedef {import("./idle-loops-ap.js").SlotData} SlotData */
+
 async function connect(IdleLoopsAP, { host, port, slotName, options }, callback) {
     const client = new AP.Client();
     // scope... Why not let me const it inside the try
     var slotData;
     try {
-        slotData = await client.login(host + ":" + port, slotName, "Idle Loops", options);
+        slotData: slotData = await client.login(host + ":" + port, slotName, "Idle Loops", options);
     } catch (err) {
         alert("Connection failed: " + err);
         return false;
     }
+
+    const location_name_to_id = client.package.findPackage("Idle Loops").locationTable;
+
+    slotData.version = slotData?.version ?? ("Crafting - Level 1" in location_name_to_id ? "0.4.4" : "0.4.1");
+
+    // I am quite surprised google didn't give me a simple 2-3 line version comparitor, and i don't want to bloat the file size
+    // Soooo, self writing something that should be a library it is.
+    let valid = false;
+    for (const [i, v] of slotData.version.split(".").entries()) {
+
+    }
+
     // On the new UI the predictor can be toggled
     // but we need it to exist *on connect* to hook it.
     if (IdleLoopsAP.newUI) {
@@ -36,7 +50,7 @@ async function connect(IdleLoopsAP, { host, port, slotName, options }, callback)
         view.updateNextActions();
     });
 
-    callback.bind(IdleLoopsAP)(client, slotName, slotData, client.package.findPackage("Idle Loops").locationTable);
+    callback.bind(IdleLoopsAP)(client, slotName, slotData, location_name_to_id);
     return true;
 }
 

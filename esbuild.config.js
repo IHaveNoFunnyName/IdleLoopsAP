@@ -4,7 +4,7 @@ import { sassPlugin } from "esbuild-sass-plugin";
 const watch = process.argv.includes("--watch");
 
 const buildOptions = {
-    entryPoints: ["src/idle-loops-ap.js"],
+    entryPoints: ["src/idle-loops-ap.ts"],
     outfile: "idle-loops-ap.js",
     bundle: true,
     minify: true,
