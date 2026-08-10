@@ -142,6 +142,22 @@
                 alert("Connection failed: " + err);
                 return;
             }
+            if ("Crafting - Level 1" in this.location_name_to_id) {
+                const can_fix = window.localStorage.getItem('IdleLoopsAPVersion');
+                const ok_text = can_fix ? "Click OK to update to the most recent version and refresh" : "Click OK to be redirected to the most recent version";
+                const result = confirm(`This world you are trying to connect to was created using a newer idleloops.apworld than this client mod version supports.\
+ ${ok_text}, or Cancel to cancel the connection.`)
+                if (result) {
+                    if (can_fix) {
+                        window.localStorage.removeItem('IdleLoopsAPVersion');
+                        window.location.reload();
+                    } else {
+                        window.location = "https://ihavenofunnyname.github.io/IdleLoopsAP/idle-loops-ap.user.js";
+                    }
+                } else {
+                    return;
+                }
+            }
             document.getElementById("APconnect").remove();
             await this.setup();
             saveName = "APSave" + slotName + this.client.room.seedName;

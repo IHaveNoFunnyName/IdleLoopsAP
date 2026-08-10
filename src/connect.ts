@@ -22,16 +22,16 @@ export function create_form(IdleLoopsAP, callback) {
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const host = form.querySelector("#APhost").value;
-        const port = form.querySelector("#APport").value;
-        const slotName = form.querySelector("#APslotName").value;
-        const password = form.querySelector("#APpassword").value;
+        const host = form.querySelector<HTMLInputElement>("#APhost").value;
+        const port = form.querySelector<HTMLInputElement>("#APport").value;
+        const slotName = form.querySelector<HTMLInputElement>("#APslotName").value;
+        const password = form.querySelector<HTMLInputElement>("#APpassword").value;
         localStorage.setItem("APhost", host);
         localStorage.setItem("APport", port);
         localStorage.setItem("APslotName", slotName);
         localStorage.setItem("APpassword", password);
 
-        const options = { slotData: true };
+        const options = { slotData: true } as any;
         if (password) {
             options.password = password;
         }
