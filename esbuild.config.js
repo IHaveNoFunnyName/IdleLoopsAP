@@ -3,9 +3,11 @@ import { sassPlugin } from "esbuild-sass-plugin";
 
 const watch = process.argv.includes("--watch");
 
+const version = "0.4.2";
+
 const buildOptions = {
     entryPoints: ["src/idle-loops-ap.ts"],
-    outfile: "idle-loops-ap.js",
+    outfile: `idle-loops-ap-${version}.js`,
     bundle: true,
     minify: true,
     target: "es2022",
@@ -18,9 +20,9 @@ if (watch) {
     await ctx.watch();
     const { hosts, port } = await ctx.serve({ servedir: ".", port: 8000, cors: { origin: "*" } });
     for (const host of hosts) {
-        console.log(`Serving ${host}:${port} - http://${host}:${port}/idle-loops-ap.js`);
+        console.log(`Serving ${host}:${port} - http://${host}:${port}/idle-loops-ap-${version}.js`);
     }
 } else {
     await esbuild.build(buildOptions);
-    console.log("Build complete: idle-loops-ap.js");
+    console.log(`Build complete: idle-loops-ap-${version}.js`);
 }

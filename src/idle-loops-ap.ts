@@ -7,8 +7,22 @@ import { hook_skill, hook_buff } from "./skills.js";
 
 import { name_map, name_map_reverse, bar_locations, skill_locations, limitedActions, segments, unhides } from "./data.js";
 
+export type SlotData = {
+    version?: string;
+    goal: number;
+    logic_vanilla: boolean;
+    logic_vanilla_all: boolean;
+    z1_shop_expensive_max: number;
+    game_speed: number;
+    stat_exp_mult: number;
+    skill_exp_mult: number;
+    bonus: number;
+    mod_ui_crime: boolean;
+    mod_color: string;
+}
+
 class IdleLoopsAP_class {
-    version = { "min": "0.4.2", "max": "0.4.4" };
+    version = { "min": "0.4.2", "max": "9.9.9" };
     client: any = false;
     offlineTime = 0;
     // Return 0 on miss without having to like put a .get() everywhere
@@ -21,7 +35,7 @@ class IdleLoopsAP_class {
             }
         }
     });
-    slotData;
+    slotData: SlotData;
     scouts = {};
     predictor: any = false;
     newUI = false;

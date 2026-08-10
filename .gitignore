@@ -1,4 +1,5 @@
 node_modules/
 
-idle-loops-ap.js
-idle-loops-ap.js.map
+# Keep the most recent version (/the one that's built) out of repo
+idle-loops-ap-0.4.2.js
+idle-loops-ap-0.4.2.js.map
