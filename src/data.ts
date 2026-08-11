@@ -73,6 +73,8 @@ export const skill_actions = { "WarriorLessons": "Combat", "MageLessons": "Magic
 export const localization_strings = [
     ["actions>ap_shop_z1>label", "AP Shop"],
     ["actions>ap_shop_z1>tooltip", `<span id="APShopZ1">You've never seen this shop before... You... think?<br>As you gaze through the merchandise something behind your eyes hurts.<br><span id="scoutAPShopZ1">This element's content is to be replaced by a scout. I could have left it empty.</span></span>`],
+    ["actions>ap_shop_z3>label", "AP Shop"],
+    ["actions>ap_shop_z3>tooltip", `<span id="APShopZ3">You spot a familiar shop among the crowded streets.<br>Exactly the same shop down to the layout and employees, bizarre.<br>The wares are different, thankfully.<br><span id="scoutAPShopZ3">This element's content is to be replaced by a scout. I could have left it empty.</span></span>`],
 ];
 
 export const new_actions = [
@@ -102,6 +104,33 @@ export const new_actions = [
         },
         finish() { },
         story(completed) { }
+    }),
+    new Action("AP Shop Z3", {
+        type: "normal",
+        expMult: 1,
+        townNum: 2,
+        stats: {
+            Cha: 0.8,
+            Luck: 0.1,
+            Soul: 0.1
+        },
+        manaCost() {
+            return 1000;
+        },
+        canStart() {
+            return resources.gold >= (window.IdleLoopsAP.nextShop(2)?.[1] ?? 0);
+        },
+        cost() {
+            addResource("gold", -(window.IdleLoopsAP.nextShop(2)?.[1] ?? 0));
+        },
+        visible() {
+            return true;
+        },
+        unlocked() {
+            return true;
+        },
+        finish() { },
+        story(completed) { }
     })
 ]
 
@@ -110,5 +139,10 @@ export const new_actions_for_predictor = {
         affected: ['apshop1', 'gold'],
         canStart: (input) => input.gold >= (window.IdleLoopsAP.nextShop(0, input.apshop1)?.[1] ?? 0),
         effect: (r) => (r.gold -= (window.IdleLoopsAP.nextShop(0, r.apshop1)?.[1] ?? 0), r.apshop1 = (r.apshop1 || 0) + 1)
-    }
+    },
+    'AP Shop Z3': {
+        affected: ['apshop3', 'gold'],
+        canStart: (input) => input.gold >= (window.IdleLoopsAP.nextShop(2, input.apshop3)?.[1] ?? 0),
+        effect: (r) => (r.gold -= (window.IdleLoopsAP.nextShop(2, r.apshop3)?.[1] ?? 0), r.apshop3 = (r.apshop3 || 0) + 1)
+    },
 }

@@ -51,6 +51,11 @@ async function connect(IdleLoopsAP, { host, port, slotName, options }, callback)
 
     slotData.version = slotData.version ?? ("Crafting - Level 1" in location_name_to_id ? "0.4.4" : "0.4.1");
 
+    if (typeof slotData.version !== "string") {
+        //@ts-ignore
+        slotData.version = slotData.version.join(".")
+    }
+
     // I am quite surprised google didn't give me a simple 2-3 line version comparator, and i don't want to bloat the file size
     // Soooo, self writing something that should be a library it is.
     const world = slotData.version.split(".").map((v) => parseInt(v));
