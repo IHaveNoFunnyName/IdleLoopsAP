@@ -9,6 +9,7 @@ export const skill_locations = {
     "Magic": 10,
     "Practical": 10,
     "Alchemy": 5,
+    "Crafting": 5,
     "Dark": 10,
     "Chronomancy": 10,
     "Pyromancy": 10,
@@ -68,7 +69,7 @@ export const unhides = {
     "Flowers": "Herbs",
 }
 
-export const skill_actions = { "WarriorLessons": "Combat", "MageLessons": "Magic", "PracticalMagic": "Practical", "LearnAlchemy": "Alchemy", "DarkMagic": "Dark", "Chronomancy": "Chronomancy", "Pyromancy": "Pyromancy" };
+export const skill_actions = { "WarriorLessons": "Combat", "MageLessons": "Magic", "PracticalMagic": "Practical", "LearnAlchemy": "Alchemy", "CraftArmor": "Crafting", "DarkMagic": "Dark", "Chronomancy": "Chronomancy", "Pyromancy": "Pyromancy" };
 
 export const localization_strings = [
     ["actions>ap_shop_z1>label", "AP Shop"],

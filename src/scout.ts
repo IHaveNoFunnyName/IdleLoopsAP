@@ -11,8 +11,11 @@ const scout_select = {
         const id = IdleLoopsAP.location_name_to_id[`Z${town + 1} - ${name_map_reverse[varName]}`];
         if (IdleLoopsAP.client.room.missingLocations.includes(id)) {
             scout(IdleLoopsAP, els, id, "Finishing this action");
-            return;
-        } else if (varName in skill_actions) {
+            if (!(varName in skill_actions)) {
+                return;
+            }
+        }
+        if (varName in skill_actions) {
             const skill = skill_actions[varName];
             const level = getSkillLevel(skill);
             const next_level = level <= 9 ? level + 1 : Math.ceil((level + 1) / skill_locations[skill]) * skill_locations[skill];
