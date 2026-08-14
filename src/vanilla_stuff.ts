@@ -194,8 +194,6 @@ export function add_actions() {
         Action[action.varName] = action;
         view.createTownAction(action);
         totalActionList.push(action);
-        // First time i gave up and used window.IdleLoopsAP instead of drilling it down
-        hook_action(window.IdleLoopsAP, action);
     }
 
     // Sad to have to do this, but src is directly calculated from the action varname,
