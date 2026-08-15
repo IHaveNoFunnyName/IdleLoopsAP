@@ -179,7 +179,7 @@ function loc(path, text, lib) {
 }
 
 function replace_image() {
-    for (const el of document.querySelectorAll<HTMLImageElement>('[src="img/aPShopZ1.svg"]')) {
+    for (const el of document.querySelectorAll<HTMLImageElement>('[src^="img/aPShop"]')) {
         el.src = "https://ihavenofunnyname.github.io/IdleLoopsAP/black-icon.svg";
     }
 }
