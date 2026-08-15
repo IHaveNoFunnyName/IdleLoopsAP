@@ -4,7 +4,8 @@ export const skill_map = { "Combat": "Combat", "Magic": "Magic", "Practical Magi
 export const skill_map_reverse = Object.fromEntries(Object.entries(skill_map).map(([k, v]) => [v, k]));
 
 export const bar_locations = [1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 95, 99, 100];
-export const skill_locations = {
+export const skill_locations = [12, 14, 16, 18, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100];
+export const old_skill_locations = {
     "Combat": 10,
     "Magic": 10,
     "Practical": 10,

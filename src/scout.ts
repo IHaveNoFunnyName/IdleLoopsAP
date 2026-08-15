@@ -1,4 +1,4 @@
-import { bar_locations, limitedActions, name_map_reverse, skill_map_reverse, skill_actions, skill_locations } from "./data.js";
+import { bar_locations, limitedActions, name_map_reverse, skill_map_reverse, skill_actions, skill_locations, old_skill_locations } from "./data.js";
 
 const scoutNodes = {};
 const scouts = {};
@@ -18,8 +18,17 @@ const scout_select = {
         if (varName in skill_actions) {
             const skill = skill_actions[varName];
             const level = getSkillLevel(skill);
-            const next_level = level <= 9 ? level + 1 : Math.ceil((level + 1) / skill_locations[skill]) * skill_locations[skill];
-            const next_id = IdleLoopsAP.location_name_to_id[`${skill_map_reverse[skill]} - Level ${next_level}`] ?? false;
+            let next_level;
+            if (level <= 9) {
+                next_level = level + 1;
+            } else {
+                next_level = "" + skill_locations.find(x => x > +(("" + level).slice(0, 2))) + "" + (("" + level).slice(2));
+            }
+            let next_id = IdleLoopsAP.location_name_to_id[`${skill_map_reverse[skill]} - Level ${next_level}`] ?? false;
+            if (!next_id) {
+                next_level = Math.ceil((level + 1) / old_skill_locations[skill]) * old_skill_locations[skill];
+                next_id = IdleLoopsAP.location_name_to_id[`${skill_map_reverse[skill]} - Level ${next_level}`] ?? false;
+            }
 
             if (next_id && IdleLoopsAP.client.room.missingLocations.includes(next_id)) {
                 scout(IdleLoopsAP, els, next_id, `Getting to ${next_level} ${skill_map_reverse[skill]}`);
