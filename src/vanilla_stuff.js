@@ -64,7 +64,7 @@ export function setup_ui(IdleLoopsAP) {
         const br = document.createElement("br");
         const next = document.createElement("div");
         next.id = `APMult${stat}`;
-        next.innerHTML = `<div class="bold">AP Mult:</div> <div class="ap-mult">${IdleLoopsAP.expMult}x</div>`;
+        next.innerHTML = `<div class="bold">AP Mult:</div> <div class="ap-mult">${IdleLoopsAP.expMult.toFixed(2)}x</div>`;
         sibling.parentNode.insertBefore(br, sibling.nextSibling);
         sibling.parentNode.insertBefore(next, br.nextSibling);
     }

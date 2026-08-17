@@ -198,7 +198,7 @@ class IdleLoopsAP_class {
             this.expMult = this.slotData.stat_exp_mult * (1 + (0.1 * this.state[x]));
             const els = document.querySelectorAll(".ap-mult");
             for (const el of els) {
-                el.textContent = `${this.expMult}x`;
+                el.textContent = `${this.expMult.toFixed(2)}x`;
             }
         } else if (x === "Progressive Lootable") {
             const effective = lastEffectiveLimited(this, this.state);
