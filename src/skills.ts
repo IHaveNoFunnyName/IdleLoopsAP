@@ -37,6 +37,7 @@ export function hook_buff(IdleLoopsAP, buff) {
             const newLevel = value;
             for (let i = prevLevel + 1; i <= newLevel; i++) {
                 IdleLoopsAP.location(`${skill_map_reverse[buff]} - ${i}`);
+                IdleLoopsAP.location(`${skill_map_reverse[buff]} ${i}`);
             }
             return success;
         }
