@@ -64,7 +64,7 @@ export function setup_ui(IdleLoopsAP) {
         const br = document.createElement("br");
         const next = document.createElement("div");
         next.id = `APMult${stat}`;
-        next.innerHTML = `<div class="bold">AP Mult:</div> <div class="ap-mult">${IdleLoopsAP.expMult.toFixed(2)}x</div>`;
+        next.innerHTML = `<div class="bold">AP Mult:</div> x<div class="ap-mult">${IdleLoopsAP.expMult.toFixed(2)}</div>`;
         sibling.parentNode.insertBefore(br, sibling.nextSibling);
         sibling.parentNode.insertBefore(next, br.nextSibling);
     }
@@ -95,7 +95,7 @@ export function setup_ui(IdleLoopsAP) {
     messageSend.textContent = "Send";
 
     const send = () => {
-        const input = document.getElementById("apMessageInput");
+        const input = document.getElementById("apMessageInput") as HTMLInputElement;
         if (input.value.length > 0) {
             IdleLoopsAP.client.messages.say(input.value);
             input.value = "";
@@ -179,7 +179,7 @@ function loc(path, text, lib) {
 }
 
 function replace_image() {
-    for (const el of document.querySelectorAll('[src="img/aPShopZ1.svg"]')) {
+    for (const el of document.querySelectorAll<HTMLImageElement>('[src^="img/aPShop"]')) {
         el.src = "https://ihavenofunnyname.github.io/IdleLoopsAP/black-icon.svg";
     }
 }
@@ -194,8 +194,6 @@ export function add_actions() {
         Action[action.varName] = action;
         view.createTownAction(action);
         totalActionList.push(action);
-        // First time i gave up and used window.IdleLoopsAP instead of drilling it down
-        hook_action(window.IdleLoopsAP, action);
     }
 
     // Sad to have to do this, but src is directly calculated from the action varname,
@@ -217,9 +215,9 @@ export function add_actions() {
 export function update_ap_tooltip(IdleLoopsAP) {
     let string = "<div>AP State</div><p>";
     string += `Progressive Lootable: ${IdleLoopsAP.state["Progressive Lootable"]}<br>`;
-    string += `Game Speed: ${gameSpeed.toFixed(2)}x<br>`;
-    string += `Exp Multiplier: ${IdleLoopsAP.expMult.toFixed(2)}x<br>`;
-    string += `Skill Exp Multiplier: ${IdleLoopsAP.slotData.skill_exp_mult.toFixed(2)}x<br>`;
+    string += `Game Speed: x${gameSpeed.toFixed(2)}<br>`;
+    string += `Exp Multiplier: x${IdleLoopsAP.expMult.toFixed(2)}<br>`;
+    string += `Skill Exp Multiplier: x${IdleLoopsAP.slotData.skill_exp_mult.toFixed(2)}<br>`;
     string += `Starting Mana: ${250 + IdleLoopsAP.state["Filler - 50 Starting Mana"] * 50}<br>`;
     string += `Starting Gold: ${IdleLoopsAP.state["Filler - 1 Starting Gold"]}<br>`;
     string += `Nothing: ${IdleLoopsAP.state["Filler - Nothing"]}`;

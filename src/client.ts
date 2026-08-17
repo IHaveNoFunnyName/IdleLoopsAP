@@ -1,16 +1,72 @@
 import * as AP from "./archipelago.min.js";
 import { enable_predictor } from "./predictor.js";
 
+import type { SlotData } from "./idle-loops-ap.js";
+
+function compareVersions(world: number[], client: number[]): number {
+    for (let i = 0; i < Math.max(client.length, world.length); i++) {
+        const num1 = world[i] ?? 0;
+        const num2 = client[i] ?? 0;
+        if (num1 < num2) return -1;
+        if (num1 > num2) return 1;
+    }
+    return 0;
+}
+
+function isSuported(world: number[], min: number[], max: number[]): boolean {
+    return compareVersions(world, min) >= 0 && compareVersions(world, max) <= 0;
+}
+
+async function confirm_update(type: "older" | "newer", worldVersion: number[]) {
+    const result = confirm(`This world you are trying to connect to was created using idleloops.apworld ${worldVersion.join(".")}, which is ${type} than this client mod version supports.\
+ Click OK to change to a compatible version and refresh, or Cancel to cancel the connection.`)
+    if (result) {
+        const versions = await (await fetch("https://IHaveNoFunnyName.github.io/IdleLoopsAP/versions.json")).json() as { [version: string]: { min: string, max: string } };
+        let version: string;
+        let range: { min: string, max: string };
+        for ([version, range] of Object.entries(versions)) {
+            const min = range.min.split(".").map((v) => parseInt(v));
+            const max = range.max.split(".").map((v) => parseInt(v));
+            if (isSuported(worldVersion, min, max)) {
+                break;
+            }
+        }
+        window.localStorage.setItem("IdleLoopsAPVersion", version);
+        location.reload();
+    }
+}
+
 async function connect(IdleLoopsAP, { host, port, slotName, options }, callback) {
     const client = new AP.Client();
     // scope... Why not let me const it inside the try
-    var slotData;
+    var slotData: SlotData;
     try {
         slotData = await client.login(host + ":" + port, slotName, "Idle Loops", options);
     } catch (err) {
         alert("Connection failed: " + err);
         return false;
     }
+
+    const location_name_to_id = client.package.findPackage("Idle Loops").locationTable;
+
+    slotData.version = slotData.version ?? ("Crafting - Level 1" in location_name_to_id ? "0.4.4" : "0.4.1");
+
+    if (typeof slotData.version !== "string") {
+        //@ts-ignore
+        slotData.version = slotData.version.join(".")
+    }
+
+    // I am quite surprised google didn't give me a simple 2-3 line version comparator, and i don't want to bloat the file size
+    // Soooo, self writing something that should be a library it is.
+    const world = slotData.version.split(".").map((v) => parseInt(v));
+    const min = IdleLoopsAP.version.min.split(".").map((v) => parseInt(v));
+    const max = IdleLoopsAP.version.max.split(".").map((v) => parseInt(v));
+    if (!isSuported(world, min, max)) {
+        const type = compareVersions(world, min) < 0 ? "older" : "newer";
+        await confirm_update(type, world);
+        return false;
+    }
+
     // On the new UI the predictor can be toggled
     // but we need it to exist *on connect* to hook it.
     if (IdleLoopsAP.newUI) {
@@ -36,7 +92,7 @@ async function connect(IdleLoopsAP, { host, port, slotName, options }, callback)
         view.updateNextActions();
     });
 
-    callback.bind(IdleLoopsAP)(client, slotName, slotData, client.package.findPackage("Idle Loops").locationTable);
+    callback.bind(IdleLoopsAP)(client, slotName, slotData, location_name_to_id);
     return true;
 }
 

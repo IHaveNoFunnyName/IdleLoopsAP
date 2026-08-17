@@ -64,10 +64,10 @@ export function hook_action(IdleLoopsAP, action) {
             get: (target, prop, receiver) => {
                 let exp = Reflect.get(target, prop, receiver);
                 if (typeof exp === "function") {
-                    exp = exp();
+                    return () => Math.floor(exp() * (IdleLoopsAP.slotData.skill_exp_mult ?? 1));
                 }
-                exp *= IdleLoopsAP.slotData.skill_exp_mult;
-                return exp;
+                exp *= (IdleLoopsAP.slotData.skill_exp_mult ?? 1);
+                return Math.floor(exp);
             }
         });
         view.requestUpdate("adjustExpGain", action);
@@ -138,7 +138,7 @@ export function effectiveLimited(IdleLoopsAP, state, varName) {
     return state[`Z${limitedObj.town + 1} - ${varName}`] + (state[`Z${limitedObj.town + 1} - x${limitedObj.bulk} ${varName}`] * limitedObj.bulk);
 }
 
-export function lastEffectiveLimited(IdleLoopsAP, state, endVarName) {
+export function lastEffectiveLimited(IdleLoopsAP, state, endVarName: string | false = false) {
     let extra = state["Progressive Lootable"];
     let oldExtra = extra;
     let past_self = false;
@@ -146,7 +146,7 @@ export function lastEffectiveLimited(IdleLoopsAP, state, endVarName) {
     if ((state["Z1 - LQuests"]) < 2) {
         extra -= Math.max(0, 2 - state["Z1 - LQuests"]);
         if (extra <= 0) {
-            if (endVarName === "LQuests" || typeof endVarName === "undefined") {
+            if (endVarName === "LQuests" || !endVarName) {
                 return "LQuests";
             }
             return false;
@@ -168,7 +168,7 @@ export function lastEffectiveLimited(IdleLoopsAP, state, endVarName) {
         const limitedObj = limitedActions[limited];
         extra -= Math.max(0, limitedObj.max - ((state[`Z${limitedObj.town + 1} - ${limited}`] + (state[`Z${limitedObj.town + 1} - x${limitedObj.bulk} ${limited}`] * limitedObj.bulk)) / limitedObj.bulk));
         if (extra <= 0) {
-            return past_self || typeof endVarName === "undefined" ? limited : false;
+            return past_self || !endVarName ? limited : false;
         }
         if (endVarName === limited) {
             past_self = true;

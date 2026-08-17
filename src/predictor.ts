@@ -8,7 +8,7 @@ export function hook_predictor(IdleLoopsAP) {
     // If the Predictor is installed, hook into it to handle starting items
     // Requires the predictor to already be initialised. Skill issue if you click it before the page fully loads. Be worse.
     // There's nothing specific to .predict that we need, it's that the whole predictor is mostly one big function except for this ONE PART that gets called with state
-    var predictor = false;
+    var predictor: any = false;
     if (typeof Koviko !== "undefined") {
         if (Koviko.predictor) {
             predictor = Koviko.predictor;
@@ -38,6 +38,7 @@ export function hook_predictor(IdleLoopsAP) {
                 let extra_mana = 50 * IdleLoopsAP.state["Filler - 50 Starting Mana"];
                 state.resources.mana += extra_mana;
                 state.resources.gold += IdleLoopsAP.state["Filler - 1 Starting Gold"];
+                state.resources.glasses = IdleLoopsAP.state["Z1 - BuyGlasses"] > 1;
 
                 let time = extra_mana / getSpeedMult(state.resources.town);
                 state.resources.totalTicks += time;

@@ -1,4 +1,4 @@
-import { hook_action, effectiveLimited } from "./action.js"
+import { effectiveLimited } from "./action.js"
 import { limitedActions, name_map_reverse, segments } from "./data.js"
 
 // Since this funtion is basically static to the function we use window.IdleLoopsAP rather than it handed down via property.
@@ -19,7 +19,7 @@ const finishRegular = function (varName, rewardRatio, rewardFunc) {
     // Add player having " - Search" to vanilla check lootable logic/behaviour (minus the commented line)
     // If the player has " - Search"es disabled, what that really does is precollect them all so this still is correct behaviour
     // Add an early return so it can flow to looting lootables in any other case
-    const searchToggler = document.getElementById(`searchToggler${varName}`);
+    const searchToggler = document.getElementById(`searchToggler${varName}`) as HTMLInputElement;
     if (window.IdleLoopsAP.state[`Z${this.index + 1} - ${varName} - Search`] && this[`total${varName}`] - this[`checked${varName}`] > 0 && ((searchToggler && !searchToggler.checked) || this[`goodTemp${varName}`] <= 0)) {
         this[`checked${varName}`]++;
         if (this[`checked${varName}`] % rewardRatio === 0) {

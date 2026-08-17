@@ -1,14 +1,16 @@
 export const name_map = { "Wander": "Wander", "Mana Pot": "Pots", "Lock": "Locks", "Buy Glasses": "BuyGlasses", "Buy Mana": "BuyMana", "Meet People": "Met", "Train Strength": "TrainStrength", "Short Quest": "SQuests", "Investigate": "Secrets", "Long Quest": "LQuests", "Throw Party": "ThrowParty", "Buy Supplies": "BuySupplies", "Haggle": "Haggle", "Start Journey": "StartJourney", "AP Shop": "APShop", "AP Shop (Expensive)": "APShopExpensive", "Heal The Sick": "Heal", "Fight Monsters": "Fight", "Small Dungeon": "SDungeon", "Warrior Lessons": "WarriorLessons", "Mage Lessons": "MageLessons", "Explore Forest": "Forest", "Wild Mana": "WildMana", "Herb": "Herbs", "Hunt": "Hunt", "Sit By Waterfall": "SitByWaterfall", "Old Shortcut": "Shortcut", "Talk To Hermit": "Hermit", "Brew Potions": "BrewPotions", "Train Dexterity": "TrainDexterity", "Train Speed": "TrainSpeed", "Follow Flowers": "Flowers", "Bird Watching": "BirdWatching", "Clear Thicket": "Thicket", "Talk To Witch": "Witch", "Continue On": "ContinueOn", "Practical Magic": "PracticalMagic", "Learn Alchemy": "LearnAlchemy", "Dark Magic": "DarkMagic", "Dark Ritual": "DarkRitual", "Explore City": "City", "Gamble": "Gamble", "Get Drunk": "Drunk", "Sell Potions": "SellPotions", "Adventure Guild": "AdvGuild", "Gather Team": "GatherTeam", "Crafting Guild": "CraftGuild", "Craft Armor": "CraftArmor", "Apprentice": "Apprentice", "Mason": "Mason", "Architect": "Architect", "Read Books": "ReadBooks", "Buy Pickaxe": "BuyPickaxe", "Start Trek": "StartTrek", "Large Dungeon": "LDungeon", "Climb Mountain": "Mountain", "Mana Geyser": "Geysers", "Decipher Runes": "Runes", "Explore Cavern": "Cavern", "Soulstone": "MineSoulstones", "Check Walls": "Illusions", "Artifact": "Artifacts", "Face Judgement": "FaceJudgement", "Hunt Trolls": "HuntTrolls", "Chronomancy": "Chronomancy", "Pyromancy": "Pyromancy", "Imbue Mind": "Imbue Mind" }
 export const name_map_reverse = Object.fromEntries(Object.entries(name_map).map(([k, v]) => [v, k]));
-export const skill_map = { "Combat": "Combat", "Magic": "Magic", "Practical Magic": "Practical", "Alchemy": "Alchemy", "Dark Magic": "Dark", "Dark Ritual": "Ritual", "Chronomancy": "Chronomancy", "Pyromancy": "Pyromancy", "Imbue Mind": "Imbuement" }
+export const skill_map = { "Combat": "Combat", "Magic": "Magic", "Practical Magic": "Practical", "Alchemy": "Alchemy", "Dark Magic": "Dark", "Dark Ritual": "Ritual", "Crafting": "Crafting", "Chronomancy": "Chronomancy", "Pyromancy": "Pyromancy", "Imbue Mind": "Imbuement" }
 export const skill_map_reverse = Object.fromEntries(Object.entries(skill_map).map(([k, v]) => [v, k]));
 
 export const bar_locations = [1, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 95, 99, 100];
-export const skill_locations = {
+export const skill_locations = [12, 14, 16, 18, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100];
+export const old_skill_locations = {
     "Combat": 10,
     "Magic": 10,
     "Practical": 10,
     "Alchemy": 5,
+    "Crafting": 5,
     "Dark": 10,
     "Chronomancy": 10,
     "Pyromancy": 10,
@@ -68,11 +70,13 @@ export const unhides = {
     "Flowers": "Herbs",
 }
 
-export const skill_actions = { "WarriorLessons": "Combat", "MageLessons": "Magic", "PracticalMagic": "Practical", "LearnAlchemy": "Alchemy", "DarkMagic": "Dark", "Chronomancy": "Chronomancy", "Pyromancy": "Pyromancy" };
+export const skill_actions = { "WarriorLessons": "Combat", "MageLessons": "Magic", "PracticalMagic": "Practical", "LearnAlchemy": "Alchemy", "CraftArmor": "Crafting", "DarkMagic": "Dark", "Chronomancy": "Chronomancy", "Pyromancy": "Pyromancy" };
 
 export const localization_strings = [
     ["actions>ap_shop_z1>label", "AP Shop"],
     ["actions>ap_shop_z1>tooltip", `<span id="APShopZ1">You've never seen this shop before... You... think?<br>As you gaze through the merchandise something behind your eyes hurts.<br><span id="scoutAPShopZ1">This element's content is to be replaced by a scout. I could have left it empty.</span></span>`],
+    ["actions>ap_shop_z3>label", "AP Shop"],
+    ["actions>ap_shop_z3>tooltip", `<span id="APShopZ3">You spot a familiar shop among the crowded streets.<br>Exactly the same shop down to the layout and employees, bizarre.<br>The wares are different, thankfully.<br><span id="scoutAPShopZ3">This element's content is to be replaced by a scout. I could have left it empty.</span></span>`],
 ];
 
 export const new_actions = [
@@ -102,6 +106,33 @@ export const new_actions = [
         },
         finish() { },
         story(completed) { }
+    }),
+    new Action("AP Shop Z3", {
+        type: "normal",
+        expMult: 1,
+        townNum: 2,
+        stats: {
+            Cha: 0.8,
+            Luck: 0.1,
+            Soul: 0.1
+        },
+        manaCost() {
+            return 1000;
+        },
+        canStart() {
+            return resources.gold >= (window.IdleLoopsAP.nextShop(2)?.[1] ?? 0);
+        },
+        cost() {
+            addResource("gold", -(window.IdleLoopsAP.nextShop(2)?.[1] ?? 0));
+        },
+        visible() {
+            return true;
+        },
+        unlocked() {
+            return true;
+        },
+        finish() { },
+        story(completed) { }
     })
 ]
 
@@ -110,5 +141,10 @@ export const new_actions_for_predictor = {
         affected: ['apshop1', 'gold'],
         canStart: (input) => input.gold >= (window.IdleLoopsAP.nextShop(0, input.apshop1)?.[1] ?? 0),
         effect: (r) => (r.gold -= (window.IdleLoopsAP.nextShop(0, r.apshop1)?.[1] ?? 0), r.apshop1 = (r.apshop1 || 0) + 1)
-    }
+    },
+    'AP Shop Z3': {
+        affected: ['apshop3', 'gold'],
+        canStart: (input) => input.gold >= (window.IdleLoopsAP.nextShop(2, input.apshop3)?.[1] ?? 0),
+        effect: (r) => (r.gold -= (window.IdleLoopsAP.nextShop(2, r.apshop3)?.[1] ?? 0), r.apshop3 = (r.apshop3 || 0) + 1)
+    },
 }
