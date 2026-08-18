@@ -95,6 +95,10 @@ class IdleLoopsAP_class {
 
         vanilla_overwrites(this.state);
 
+        // 
+        view.removeAllHighlights()
+        view.highlightIncompleteActions()
+
         // Collect checks from before this connection
         for (const item of this.client.items.received) {
             this.item(item.name, true);
