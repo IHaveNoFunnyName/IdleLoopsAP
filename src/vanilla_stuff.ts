@@ -1,7 +1,6 @@
 import styleCss from "./styles/style.scss";
 import colorsCss from "./styles/color.scss";
 import { name_map_reverse, skill_map_reverse, limitedActions, new_actions, localization_strings } from "./data.js";
-import { hook_action } from "./action.js";
 
 const apStateHover = document.createElement("div");
 apStateHover.classList.add("showthis");

@@ -16,22 +16,35 @@ export const old_skill_locations = {
     "Pyromancy": 10,
 };
 
-// The order here is used for the "progressive limited" item, so it's ordered in usefulness > zone (mostly)
-// Max isn't said explicitly anywhere in the code we could just read
-// Will have to be rewritten if we get to Survey
 export const limitedActions = {
-    "SQuests": { town: 0, max: 20, ratio: 5, bulk: 1 },
-    "LQuests": { town: 0, max: 10, ratio: 5, bulk: 1 },
-    "Locks": { town: 0, max: 10, ratio: 10, bulk: 1 },
-    "WildMana": { town: 1, max: 100, ratio: 10, bulk: 10 },
-    "Gamble": { town: 2, max: 20, ratio: 10, bulk: 1 },
-    "Herbs": { town: 1, max: 200, ratio: 10, bulk: 10 },
-    "Geysers": { town: 3, max: 10, ratio: 100, bulk: 1 },
-    "MineSoulstones": { town: 3, max: 30, ratio: 10, bulk: 1 },
-    "Hunt": { town: 1, max: 20, ratio: 10, bulk: 1 },
-    "Artifacts": { town: 3, max: 20, ratio: 25, bulk: 1 },
-    "Pots": { town: 0, max: 9999, ratio: 10, bulk: 1 },
+    "SQuests": { town: 0, ratio: 5, bulk: 1 },
+    "LQuests": { town: 0, ratio: 5, bulk: 1 },
+    "Locks": { town: 0, ratio: 10, bulk: 1 },
+    "WildMana": { town: 1, ratio: 10, bulk: 10 },
+    "Gamble": { town: 2, ratio: 10, bulk: 1 },
+    "Herbs": { town: 1, ratio: 10, bulk: 10 },
+    "Geysers": { town: 3, ratio: 100, bulk: 1 },
+    "MineSoulstones": { town: 3, ratio: 10, bulk: 1 },
+    "Hunt": { town: 1, ratio: 10, bulk: 1 },
+    "Artifacts": { town: 3, ratio: 25, bulk: 1 },
+    "Pots": { town: 0, ratio: 10, bulk: 1 },
 }
+// Order for "Progressive Lootable"
+export const limits: [string, number][] = [
+    ["LQuests", 2],
+    ["SQuests", 20],
+    ["LQuests", 10],
+    ["Locks", 10],
+    ["WildMana", 100],
+    ["Gamble", 30],
+    ["Herbs", 200],
+    ["Geysers", 10],
+    ["MineSoulstones", 30],
+    ["Hunt", 20],
+    ["Artifacts", 20],
+    ["Pots", 9999],
+];
+
 export const segments = {
     "Heal": 3,
     "Fight": 3,

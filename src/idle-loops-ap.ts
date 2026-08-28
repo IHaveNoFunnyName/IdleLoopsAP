@@ -6,6 +6,7 @@ import { hook_action, lastEffectiveLimited } from "./action.js";
 import { hook_skill, hook_buff } from "./skills.js";
 
 import { name_map, name_map_reverse, bar_locations, skill_locations, limitedActions, segments, unhides } from "./data.js";
+import { setup_scouts } from "./scout.js";
 
 export type SlotData = {
     version?: string;
@@ -95,7 +96,7 @@ class IdleLoopsAP_class {
 
         vanilla_overwrites(this.state);
 
-        // 
+        // Highlights = border around undone actions
         view.removeAllHighlights()
         view.highlightIncompleteActions()
 
@@ -114,6 +115,8 @@ class IdleLoopsAP_class {
 
         if (this.predictor) this.predictor.cache.reset();
         view.updateNextActions();
+
+        setup_scouts(this);
 
         previous_locations(this);
     }
@@ -179,6 +182,7 @@ class IdleLoopsAP_class {
      */
     item(x, old = false) {
         let [zone, action, ...rest] = x.split(" - ");
+        let display = x;
         if (zone.startsWith("Z")) {
             let bulk = false;
             if (action.startsWith("x")) {
@@ -193,10 +197,8 @@ class IdleLoopsAP_class {
             if (action === "APShop") {
                 action = "APShopZ" + zone.substring(1);
             }
-            if (bulk) {
-                action = bulk + " " + action;
-            }
-            x = [zone, action, ...rest].join(" - ");
+            x = [zone, (bulk ? bulk + " " + action : action), ...rest].join(" - ");
+            display = [zone, (bulk ? bulk + " " + name_map_reverse[action] : name_map_reverse[action]), ...rest].join(" - ");
         }
         this.state[x]++;
 
@@ -204,7 +206,11 @@ class IdleLoopsAP_class {
             if (rest.length === 0) {
                 const lastEffective = lastEffectiveLimited(this, this.state, action);
                 if (lastEffective && lastEffective !== action) {
-                    if (!old) this.log(`Due to Progressive Lootables, ${x} had the effect of an extra ${name_map_reverse[lastEffective]} instead`);
+                    let instead = name_map_reverse[lastEffective];
+                    if (limitedActions[lastEffective].bulk > 1) {
+                        instead = `x${limitedActions[lastEffective].bulk} ${instead}`;
+                    }
+                    if (!old) this.log(`Due to Progressive Lootables, ${display}  had the effect of an extra ${instead} instead`);
                     view.updateRegular({ name: lastEffective, index: +(zone.substring(1)) - 1 });
                 }
             } else if (rest[0] === "Search") {
@@ -223,8 +229,12 @@ class IdleLoopsAP_class {
                 el.textContent = `${this.expMult.toFixed(2)}`;
             }
         } else if (x === "Progressive Lootable") {
-            const effective = lastEffectiveLimited(this, this.state) as string;
-            if (!old) this.log(`Progressive Lootable had the effect of an extra ${name_map_reverse[effective]}`);
+            const effective = lastEffectiveLimited(this, this.state);
+            let instead = name_map_reverse[effective];
+            if (limitedActions[effective].bulk > 1) {
+                instead = `x${limitedActions[effective].bulk} ${instead}`;
+            }
+            if (!old) this.log(`Progressive Lootable had the effect of an extra ${instead}`);
             view.updateRegular({ name: effective, index: limitedActions[effective].town });
         } else if (unhides?.[action]) {
             // If an multiple actions give a town info container, vanilla only shows it when the first one is finished.
@@ -246,3 +256,5 @@ class IdleLoopsAP_class {
 }
 window.IdleLoopsAP = new IdleLoopsAP_class();
 window.IdleLoopsAP.load();
+
+export type { IdleLoopsAP_class as IdleLoopsAP };

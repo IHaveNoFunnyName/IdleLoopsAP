@@ -110,3 +110,11 @@ body:not(.t-dark) .ap-player-other {
 body:not(.t-dark) .ap-item {
     color: #00c0c0;
 }
+
+.ap-scout:not(:empty)~.ap-scout-empty {
+    display: none;
+}
+
+.ap-scout {
+    display: block;
+}

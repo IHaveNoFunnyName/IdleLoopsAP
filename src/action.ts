@@ -1,5 +1,4 @@
-import { setup_scout } from "./scout.js";
-import { limitedActions, name_map_reverse, skill_requirements } from "./data.js";
+import { limitedActions, limits, name_map_reverse, skill_requirements } from "./data.js";
 
 export function hook_action(IdleLoopsAP, action) {
 
@@ -72,8 +71,6 @@ export function hook_action(IdleLoopsAP, action) {
         });
         view.requestUpdate("adjustExpGain", action);
     }
-
-    setup_scout(IdleLoopsAP, action);
 }
 
 function unlocked(IdleLoopsAP, state, action) {
@@ -86,93 +83,81 @@ function unlocked(IdleLoopsAP, state, action) {
 
 // Unsure if to have these two here on in a zone.js, eh
 export function effectiveLimited(IdleLoopsAP, state, varName) {
-    let extra = state["Progressive Lootable"];
-    let oldExtra = extra;
-
-    // Edge case for LQuests, we want an extra 'fake' LQuests with max 2, to guarantee 2 rep.
-    if ((state["Z1 - LQuests"]) < 2) {
-        extra -= Math.max(0, 2 - state["Z1 - LQuests"]);
-        if (extra <= 0) {
-            if (varName === "LQuests") {
-                return (state["Z1 - LQuests"]) + oldExtra;
+    // This is called a bit, probably a good refactor to only update these when we get an item.
+    // But for now at the very least, 'a bit' is only once per loop restart (...per limited action), so it's not going to cause bad performance
+    const count = new Proxy({}, {
+        get: (target, prop) => {
+            if (prop in target || !(prop in limitedActions)) {
+                return target[prop];
             } else {
-                return state[`Z${limitedActions?.[varName]?.town + 1} - ${varName}`];
+                const bulk = limitedActions[prop]?.bulk || 1;
+                const bulknum = bulk * state[`Z${limitedActions[prop].town + 1} - x${bulk} ${String(prop)}`];
+                const num = state[`Z${limitedActions[prop].town + 1} - ${String(prop)}`] + bulknum;
+                Reflect.set(target, prop, num);
+                return num;
             }
         }
-        // Edge case for the edge case - if we somehow managed to cap SQuests with Progressive before finding 2 LQuests,
-        // we don't want to double use progressives on LQuests.
-        if (oldExtra !== extra && (state["Z1 - SQuests"] + extra >= 20)) {
-            extra += oldExtra - extra;
-        } else if (varName === "LQuests") {
-            // This path is reached if we have enough to get 2 LQuests but not enough to get 20 SQuests, to which we always return 2
-            return 2;
-        }
-        oldExtra = extra;
-    }
+    });
 
-    for (const limited in limitedActions) {
-
-        if (limitedActions[limited].town > IdleLoopsAP.slotData.goal) {
+    let extra = state["Progressive Lootable"];
+    for (const [name, limit] of limits) {
+        if (limitedActions[name].town > IdleLoopsAP.slotData.goal) {
             continue;
         }
-
-        const limitedObj = limitedActions[limited];
-        if (varName === limited) {
-            extra -= Math.max(0, limitedObj.max - (state[`Z${limitedObj.town + 1} - ${limited}`] + (state[`Z${limitedObj.town + 1} - x${limitedObj.bulk} ${limited}`] * limitedObj.bulk)));
-            if (extra <= 0) {
-                return (state[`Z${limitedObj.town + 1} - ${limited}`] + (state[`Z${limitedObj.town + 1} - x${limitedObj.bulk} ${limited}`] * limitedObj.bulk)) + (oldExtra * limitedObj.bulk);
+        if (count[name] < limit) {
+            extra -= Math.ceil((limit - count[name]) / limitedActions[name].bulk);
+            if (extra > 0) {
+                count[name] = limit;
             } else {
-                return limitedObj.max;
+                // Reminder extra is negative in this branch
+                count[name] = limit + (extra * limitedActions[name].bulk);
+                break;
             }
         }
-        extra -= Math.max(0, limitedObj.max - ((state[`Z${limitedObj.town + 1} - ${limited}`] + (state[`Z${limitedObj.town + 1} - x${limitedObj.bulk} ${limited}`] * limitedObj.bulk)) / limitedObj.bulk));
-        if (extra <= 0) {
-            break;
-        }
-        oldExtra = extra;
     }
-    const limitedObj = limitedActions[varName];
-    if (!limitedObj) {
-        return 0;
-    }
-    return state[`Z${limitedObj.town + 1} - ${varName}`] + (state[`Z${limitedObj.town + 1} - x${limitedObj.bulk} ${varName}`] * limitedObj.bulk);
+
+    return count[varName];
 }
 
-export function lastEffectiveLimited(IdleLoopsAP, state, endVarName: string | false = false) {
+export function lastEffectiveLimited(IdleLoopsAP, state, goalVarName: string = "") {
+    const count = new Proxy({}, {
+        get: (target, prop) => {
+            if (prop in target || !(prop in limitedActions)) {
+                return target[prop];
+            } else {
+                const bulk = limitedActions[prop]?.bulk || 1;
+                const bulknum = bulk * state[`Z${limitedActions[prop].town + 1} - x${bulk} ${String(prop)}`];
+                const num = state[`Z${limitedActions[prop].town + 1} - ${String(prop)}`] + bulknum;
+                Reflect.set(target, prop, num);
+                return num;
+            }
+        }
+    });
+
+    let seenGoal = !goalVarName;
+
     let extra = state["Progressive Lootable"];
-    let oldExtra = extra;
-    let past_self = false;
-
-    if ((state["Z1 - LQuests"]) < 2) {
-        extra -= Math.max(0, 2 - state["Z1 - LQuests"]);
-        if (extra <= 0) {
-            if (endVarName === "LQuests" || !endVarName) {
-                return "LQuests";
-            }
-            return false;
-        }
-        if (oldExtra !== extra) {
-            if (state["Z1 - SQuests"] + extra >= 20) {
-                extra += oldExtra - extra;
-            } else if (endVarName === "LQuests") {
-                return "SQuests";
-            }
-        }
-    }
-
-    for (const limited in limitedActions) {
-
-        if (limitedActions[limited].town > IdleLoopsAP.slotData.goal) {
+    for (const [name, limit] of limits) {
+        if (limitedActions[name].town > IdleLoopsAP.slotData.goal) {
             continue;
         }
-        const limitedObj = limitedActions[limited];
-        extra -= Math.max(0, limitedObj.max - ((state[`Z${limitedObj.town + 1} - ${limited}`] + (state[`Z${limitedObj.town + 1} - x${limitedObj.bulk} ${limited}`] * limitedObj.bulk)) / limitedObj.bulk));
-        if (extra <= 0) {
-            return past_self || !endVarName ? limited : false;
+        if (name === goalVarName) {
+            seenGoal = true;
         }
-        if (endVarName === limited) {
-            past_self = true;
+        if (count[name] < limit) {
+            extra -= Math.ceil((limit - count[name]) / limitedActions[name].bulk);
+            if (extra > 0) {
+                count[name] = limit;
+            } else {
+                // Reminder extra is negative in this branch
+                count[name] = limit + (extra * limitedActions[name].bulk);
+                if (seenGoal) {
+                    return name;
+                } else {
+                    return goalVarName;
+                }
+            }
         }
-        oldExtra = extra;
     }
+    return "Nothing";
 }
