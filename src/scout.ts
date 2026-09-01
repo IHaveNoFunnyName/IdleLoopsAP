@@ -70,7 +70,7 @@ const id_to_scout = {
         if (level <= 9) {
             next_level = level + 1;
         } else {
-            next_level = "" + skill_locations.find(x => x > +(("" + level).slice(0, 2))) + "" + (("" + level).slice(2));
+            next_level = "" + skill_locations.find(x => x > +(("" + level).slice(0, 2))) * Math.pow(10, (("" + level).slice(2).length));
         }
         let next_id = IdleLoopsAP.location_name_to_id[`${skill_map_reverse[skillName]} - Level ${next_level}`] ?? false;
         if (!next_id) {
