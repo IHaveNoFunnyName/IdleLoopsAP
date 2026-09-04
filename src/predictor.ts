@@ -34,7 +34,7 @@ export function hook_predictor(IdleLoopsAP) {
         }
 
         const predict = function (prediction, state) {
-            if (Object.values(state.stats).every(stat => stat === 0)) {
+            if (state.resources.totalTicks === 0) {
                 let extra_mana = 50 * IdleLoopsAP.state["Filler - 50 Starting Mana"];
                 state.resources.mana += extra_mana;
                 state.resources.gold += IdleLoopsAP.state["Filler - 1 Starting Gold"];
@@ -62,7 +62,8 @@ export function hook_predictor(IdleLoopsAP) {
         document.addEventListener("predictor-update", () => {
             const string = predictor.totalDisplay.innerHTML;
             const split = string.split(" | ");
-            if (/^[-\d.]+$/.test(split[0])) {
+            if (/^[-\d.,]+$/.test(split[0])) {
+                split[0] = split[0].replace(/,/g, '');
                 split[0] = intToString(parseInt(split[0]) + (IdleLoopsAP.state["Filler - 50 Starting Mana"] * 50));
                 predictor.totalDisplay.innerHTML = split.join(" | ");
             }
