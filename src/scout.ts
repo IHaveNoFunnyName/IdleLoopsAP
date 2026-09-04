@@ -1,4 +1,4 @@
-import { bar_locations, limitedActions, name_map_reverse, skill_map_reverse, skill_actions, skill_locations, old_skill_locations } from "./data.js";
+import { bar_locations, limitedActions, name_map_reverse, skill_map_reverse, skill_locations, old_skill_locations } from "./data.js";
 
 import type { IdleLoopsAP } from "./idle-loops-ap.js";
 

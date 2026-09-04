@@ -75,6 +75,14 @@ async function connect(IdleLoopsAP, { host, port, slotName, options }, callback)
         await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
+    if (slotData.death_link) {
+        client.deathLink.enableDeathLink();
+        client.deathLink.on("deathReceived", (source, time, cause) => {
+            IdleLoopsAP.die();
+            IdleLoopsAP.log(cause ? cause : `${source} died`)
+        });
+    }
+
     client.messages.on("message", (...content) => {
         const messageElement = document.createElement("li");
         // Some events pass two args, some three... Annoying.

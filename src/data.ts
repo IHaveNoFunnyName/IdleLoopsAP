@@ -83,7 +83,16 @@ export const unhides = {
     "Flowers": "Herbs",
 }
 
-export const skill_actions = { "WarriorLessons": "Combat", "MageLessons": "Magic", "PracticalMagic": "Practical", "LearnAlchemy": "Alchemy", "CraftArmor": "Crafting", "DarkMagic": "Dark", "Chronomancy": "Chronomancy", "Pyromancy": "Pyromancy" };
+export const death_messages = [
+    "You tripped over a rock",
+    "You just couldn't take it anymore",
+    "You fell into a pit",
+    "You started daydreaming and lost track of time",
+    "You lost focus",
+    "You got distracted",
+    "You needed a break",
+    "The game action 'Death' happened, which cancels the rest of the current loop",
+]
 
 export const localization_strings = [
     ["actions>ap_shop_z1>label", "AP Shop"],

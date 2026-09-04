@@ -5,11 +5,12 @@ import { hook_town } from "./zone.js";
 import { hook_action, lastEffectiveLimited } from "./action.js";
 import { hook_skill, hook_buff } from "./skills.js";
 
-import { name_map, name_map_reverse, bar_locations, skill_locations, limitedActions, segments, unhides } from "./data.js";
+import { name_map, name_map_reverse, bar_locations, skill_locations, limitedActions, segments, unhides, death_messages } from "./data.js";
 import { setup_scouts } from "./scout.js";
 
 export type SlotData = {
     version?: string;
+    death_link: boolean;
     goal: number;
     logic_vanilla: boolean;
     logic_vanilla_all: boolean;
@@ -228,6 +229,9 @@ class IdleLoopsAP_class {
             for (const el of els) {
                 el.textContent = `${this.expMult.toFixed(2)}`;
             }
+        } else if (x === "Death" && !old) {
+            this.die();
+            this.client.deathLink.sendDeathLink(this.client.players.self.alias);
         } else if (x === "Progressive Lootable") {
             const effective = lastEffectiveLimited(this, this.state);
             let instead = name_map_reverse[effective];
@@ -242,6 +246,20 @@ class IdleLoopsAP_class {
             unhide(unhides[action]);
         }
         update_ap_tooltip(this);
+    }
+
+    die() {
+        const message = death_messages[Math.floor(Math.random() * death_messages.length)];
+        let curAction = actions.current[actions.currentPos];
+        while (curAction) {
+            curAction.errorMessage = message;
+            view.requestUpdate("updateCurrentActionBar", actions.currentPos);
+            actions.currentPos++;
+            curAction = actions.current[actions.currentPos];
+        }
+        if ((!stop) && typeof stop !== "function" || (typeof gameIsStopped !== "undefined" && !gameIsStopped)) {
+            pauseGame();
+        }
     }
 
     log(x) {
