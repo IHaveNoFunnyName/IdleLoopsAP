@@ -36,13 +36,20 @@ async function confirm_update(type: "older" | "newer", worldVersion: number[]) {
     }
 }
 
+let debounce = false;
+
 async function connect(IdleLoopsAP, { host, port, slotName, options }, callback) {
+    if (debounce) return false;
     const client = new AP.Client();
     // scope... Why not let me const it inside the try
     var slotData: SlotData;
     try {
+        debounce = true;
+        // Long timeout just in case
+        setTimeout(() => { debounce = false }, 10000);
         slotData = await client.login(host + ":" + port, slotName, "Idle Loops", options);
     } catch (err) {
+        debounce = false;
         alert("Connection failed: " + err);
         return false;
     }
@@ -64,6 +71,7 @@ async function connect(IdleLoopsAP, { host, port, slotName, options }, callback)
     if (!isSuported(world, min, max)) {
         const type = compareVersions(world, min) < 0 ? "older" : "newer";
         await confirm_update(type, world);
+        debounce = false;
         return false;
     }
 
@@ -99,6 +107,14 @@ async function connect(IdleLoopsAP, { host, port, slotName, options }, callback)
         if (IdleLoopsAP.predictor) IdleLoopsAP.predictor.cache.reset();
         view.updateNextActions();
     });
+
+    client.socket.on("disconnected", () => {
+        const node = document.createElement("li");
+        node.innerHTML = "Disconnected from server, refresh to reconnect"
+        node.style.color = "red";
+        node.style.fontWeight = "bold";
+        IdleLoopsAP.log_node(node)
+    })
 
     callback.bind(IdleLoopsAP)(client, slotName, slotData, location_name_to_id);
     return true;
