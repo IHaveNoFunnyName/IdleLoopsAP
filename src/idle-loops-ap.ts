@@ -1,4 +1,4 @@
-import { create_form } from "./connect.js";
+import { create_connect_form } from "./connect.js";
 import { ap_load, update_ap_tooltip, vanilla_overwrites, previous_locations, unhide } from "./vanilla_stuff.js";
 import { hook_predictor, predictor_add_actions } from "./predictor.js";
 import { hook_town } from "./zone.js";
@@ -45,6 +45,8 @@ class IdleLoopsAP_class {
     expMult = 1;
     location_name_to_id = {};
     logElement: any = false;
+    connected = false;
+    location_queue = [];
 
     /**
      * Injects the AP connect form.
@@ -52,7 +54,7 @@ class IdleLoopsAP_class {
      */
     load() {
         this.newUI = document.querySelector("#actionLogTitle") !== null;
-        create_form(this, this.connect);
+        create_connect_form(this, this.connect);
     }
 
     /**
@@ -170,6 +172,10 @@ class IdleLoopsAP_class {
     location(x) {
         const check = typeof x === "string" ? this.location_name_to_id?.[x] ?? false : x;
         if (check) {
+            if (!this.connected) {
+                this.location_queue.push(check);
+                return;
+            }
             try {
                 this.client.check(check);
             } catch (error) {

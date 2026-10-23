@@ -213,7 +213,11 @@ function scout_shop(IdleLoopsAP: IdleLoopsAP, el: NodeListOf<Element>, action) {
 async function scout(IdleLoopsAP, id) {
     let scout
     if (!(id in scouts)) {
-        scouts[id] = IdleLoopsAP.client.scout([id]);
+        if (IdleLoopsAP.connected) {
+            scouts[id] = IdleLoopsAP.client.scout([id]);
+        } else {
+            return `<span class="bold ap-item-trap">Disconnected</span>`;
+        }
     }
     scout = await scouts[id];
 

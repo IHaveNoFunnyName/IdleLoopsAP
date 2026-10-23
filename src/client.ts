@@ -2,6 +2,8 @@ import * as AP from "./archipelago.min.js";
 import { enable_predictor } from "./predictor.js";
 
 import type { SlotData } from "./idle-loops-ap.js";
+import { create_reconnect_form } from "./connect.js";
+
 
 function compareVersions(world: number[], client: number[]): number {
     for (let i = 0; i < Math.max(client.length, world.length); i++) {
@@ -43,6 +45,15 @@ async function connect(IdleLoopsAP, { host, port, slotName, options }, callback)
     const client = new AP.Client();
     // scope... Why not let me const it inside the try
     var slotData: SlotData;
+
+    // On the new UI the predictor can be toggled
+    // but we need it to exist *on connect* to hook it.
+    if (IdleLoopsAP.newUI) {
+        enable_predictor();
+        restart();
+        await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+
     try {
         debounce = true;
         // Long timeout just in case
@@ -53,6 +64,8 @@ async function connect(IdleLoopsAP, { host, port, slotName, options }, callback)
         alert("Connection failed: " + err);
         return false;
     }
+
+    IdleLoopsAP.connected = true;
 
     const location_name_to_id = client.package.findPackage("Idle Loops").locationTable;
 
@@ -75,14 +88,6 @@ async function connect(IdleLoopsAP, { host, port, slotName, options }, callback)
         return false;
     }
 
-    // On the new UI the predictor can be toggled
-    // but we need it to exist *on connect* to hook it.
-    if (IdleLoopsAP.newUI) {
-        enable_predictor();
-        restart();
-        await new Promise((resolve) => setTimeout(resolve, 100));
-    }
-
     if (slotData.death_link) {
         client.deathLink.enableDeathLink();
         client.deathLink.on("deathReceived", (source, time, cause) => {
@@ -101,23 +106,56 @@ async function connect(IdleLoopsAP, { host, port, slotName, options }, callback)
     });
 
     client.items.on("itemsReceived", (items, index) => {
+        if (index === 0) {
+            for (const item in IdleLoopsAP.state) {
+                delete IdleLoopsAP.state[item];
+            }
+        }
         for (const item of items) {
-            IdleLoopsAP.item(item.name);
+            IdleLoopsAP.item(item.name, index === 0);
         }
         if (IdleLoopsAP.predictor) IdleLoopsAP.predictor.cache.reset();
         view.updateNextActions();
     });
 
-    client.socket.on("disconnected", () => {
-        const node = document.createElement("li");
-        node.innerHTML = "Disconnected from server, refresh to reconnect"
-        node.style.color = "red";
-        node.style.fontWeight = "bold";
-        IdleLoopsAP.log_node(node)
+    client.socket.on("disconnected", async () => {
+        IdleLoopsAP.connected = false;
+        // Why does this work *yells at scope*
+        const form = create_reconnect_form(IdleLoopsAP, () => reconnect(IdleLoopsAP, { host, port, slotName, options }, form));
+        const timerElement = document.getElementById("APreconnectTimer");
+        reconnectTimer = 61;
+        reconnectTimerID = setInterval(() => {
+            reconnectTimer--;
+            timerElement.innerText = ` (${reconnectTimer.toString().padStart(2, "0")})`;
+            if (reconnectTimer <= 0) {
+                reconnectTimer = 61;
+                reconnect(IdleLoopsAP, { host, port, slotName, options }, form);
+            }
+        }, 1000);
+        reconnect(IdleLoopsAP, { host, port, slotName, options }, form);
     })
 
     callback.bind(IdleLoopsAP)(client, slotName, slotData, location_name_to_id);
     return true;
+}
+
+let reconnectTimer;
+let reconnectTimerID;
+
+async function reconnect(IdleLoopsAP, connectionInfo, form) {
+    const { host, port, slotName, options } = connectionInfo;
+    form.querySelector("button").disabled = true;
+    try {
+        await IdleLoopsAP.client.login(host + ":" + port, slotName, "Idle Loops", options);
+        clearInterval(reconnectTimerID);
+        reconnectTimerID = null;
+        form.remove();
+        IdleLoopsAP.connected = true;
+        IdleLoopsAP.client.check(...IdleLoopsAP.location_queue);
+        IdleLoopsAP.location_queue = [];
+    } catch (err) {
+        form.querySelector("button").disabled = false;
+    }
 }
 
 export function nodes_to_message(IdleLoopsAP, nodes, el) {

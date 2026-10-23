@@ -4,7 +4,7 @@ import { setup_ui } from "./vanilla_stuff.js";
 /**
  * Creates the AP connect form and handles submission. 
  */
-export function create_form(IdleLoopsAP, callback) {
+export function create_connect_form(IdleLoopsAP, callback) {
     const css = document.createElement("style");
     css.textContent = connectCss;
     document.head.appendChild(css);
@@ -52,3 +52,19 @@ export function create_form(IdleLoopsAP, callback) {
     const manaDisplay = document.getElementById("trackedResources");
     manaDisplay.parentNode.insertBefore(form, manaDisplay.nextSibling);
 };
+
+export function create_reconnect_form(IdleLoopsAP, callback) {
+    const form = document.createElement("form");
+    form.id = "APreconnect";
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        callback();
+    });
+
+    form.innerHTML = `<span class="bold ap-item-trap">Disconnected</span><button class="button" type="submit" style="padding:1px 10px"><span id="APreconnectTimer"></span>Reconnect</button>`;
+    const elid = IdleLoopsAP.newUI ? "#actionLogTitle" : "#apTitle";
+    const actionLog = document.querySelector(elid);
+    actionLog.parentNode.insertBefore(form, actionLog.nextSibling);
+    return form;
+}
