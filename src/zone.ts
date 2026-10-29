@@ -1,4 +1,3 @@
-import { effectiveLimited } from "./action.js"
 import { limitedActions, name_map_reverse, segments } from "./data.js"
 
 // Since this funtion is basically static to the function we use window.IdleLoopsAP rather than it handed down via property.
@@ -45,7 +44,7 @@ export function hook_town(IdleLoopsAP, town) {
             if (typeof prop === "string" && prop.startsWith("good")) {
                 const name = prop.substring(4);
                 if (!name.startsWith("Temp")) {
-                    return effectiveLimited(IdleLoopsAP, IdleLoopsAP.state, name);
+                    return IdleLoopsAP.limitedState[name];
                 }
             } else if (typeof prop === "string" && prop === "finishRegular") {
                 return finishRegular.bind(receiver);

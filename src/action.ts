@@ -76,29 +76,19 @@ export function hook_action(IdleLoopsAP, action) {
 function unlocked(IdleLoopsAP, state, action) {
     let defaultVisible = false;
     if (action.type == "limited") {
-        defaultVisible = effectiveLimited(IdleLoopsAP, state, action.varName) > 0 || (towns[action.townNum][`total${action.varName}`] && `Z${action.townNum + 1} - ${action.varName} - Search` in state);
+        defaultVisible = IdleLoopsAP.limitedState[action.varName] > 0 || (towns[action.townNum][`total${action.varName}`] && `Z${action.townNum + 1} - ${action.varName} - Search` in state);
     }
     return defaultVisible || `Z${action.townNum + 1} - ${action.varName}` in state;
 }
 
-// Unsure if to have these two here on in a zone.js, eh
-export function effectiveLimited(IdleLoopsAP, state, varName) {
-    // This is called a bit, probably a good refactor to only update these when we get an item.
-    // But for now at the very least, 'a bit' is only once per loop restart (...per limited action), so it's not going to cause bad performance
-    const count = new Proxy({}, {
-        get: (target, prop) => {
-            if (prop in target || !(prop in limitedActions)) {
-                return target[prop];
-            } else {
-                const bulk = limitedActions[prop]?.bulk || 1;
-                const bulknum = bulk * state[`Z${limitedActions[prop].town + 1} - x${bulk} ${String(prop)}`];
-                const num = state[`Z${limitedActions[prop].town + 1} - ${String(prop)}`] + bulknum;
-                Reflect.set(target, prop, num);
-                return num;
-            }
-        }
-    });
-
+export function limitedFromState(IdleLoopsAP, state) {
+    const count = {};
+    for (const prop in limitedActions) {
+        const bulk = limitedActions[prop]?.bulk || 1;
+        const bulknum = bulk * state[`Z${limitedActions[prop].town + 1} - x${bulk} ${String(prop)}`];
+        const num = state[`Z${limitedActions[prop].town + 1} - ${String(prop)}`] + bulknum;
+        count[prop] = num;
+    }
     let extra = state["Progressive Lootable"];
     for (const [name, limit] of limits) {
         if (limitedActions[name].town > IdleLoopsAP.slotData.goal) {
@@ -115,49 +105,5 @@ export function effectiveLimited(IdleLoopsAP, state, varName) {
             }
         }
     }
-
-    return count[varName];
-}
-
-export function lastEffectiveLimited(IdleLoopsAP, state, goalVarName: string = "") {
-    const count = new Proxy({}, {
-        get: (target, prop) => {
-            if (prop in target || !(prop in limitedActions)) {
-                return target[prop];
-            } else {
-                const bulk = limitedActions[prop]?.bulk || 1;
-                const bulknum = bulk * state[`Z${limitedActions[prop].town + 1} - x${bulk} ${String(prop)}`];
-                const num = state[`Z${limitedActions[prop].town + 1} - ${String(prop)}`] + bulknum;
-                Reflect.set(target, prop, num);
-                return num;
-            }
-        }
-    });
-
-    let seenGoal = !goalVarName;
-
-    let extra = state["Progressive Lootable"];
-    for (const [name, limit] of limits) {
-        if (limitedActions[name].town > IdleLoopsAP.slotData.goal) {
-            continue;
-        }
-        if (name === goalVarName) {
-            seenGoal = true;
-        }
-        if (count[name] < limit) {
-            extra -= Math.ceil((limit - count[name]) / limitedActions[name].bulk);
-            if (extra > 0) {
-                count[name] = limit;
-            } else {
-                // Reminder extra is negative in this branch
-                count[name] = limit + (extra * limitedActions[name].bulk);
-                if (seenGoal) {
-                    return name;
-                } else {
-                    return goalVarName;
-                }
-            }
-        }
-    }
-    return "Nothing";
+    return count;
 }

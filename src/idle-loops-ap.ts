@@ -2,7 +2,7 @@ import { create_connect_form } from "./connect.js";
 import { ap_load, update_ap_tooltip, vanilla_overwrites, previous_locations, unhide } from "./vanilla_stuff.js";
 import { hook_predictor, predictor_add_actions } from "./predictor.js";
 import { hook_town } from "./zone.js";
-import { hook_action, lastEffectiveLimited } from "./action.js";
+import { hook_action, limitedFromState } from "./action.js";
 import { hook_skill, hook_buff } from "./skills.js";
 
 import { name_map, name_map_reverse, bar_locations, skill_locations, limitedActions, segments, unhides, death_messages } from "./data.js";
@@ -37,6 +37,7 @@ class IdleLoopsAP_class {
             }
         }
     });
+    limitedState = {};
     slotData: SlotData;
     scouts = {};
     predictor: any = false;
@@ -207,18 +208,22 @@ class IdleLoopsAP_class {
             x = [zone, (bulk ? bulk + " " + action : action), ...rest].join(" - ");
             display = [zone, (bulk ? bulk + " " + name_map_reverse[action] : name_map_reverse[action]), ...rest].join(" - ");
         }
+
+        const oldLimitedState = this.limitedState;
+
         this.state[x]++;
+        this.limitedState = limitedFromState(this, this.state);
 
         if (limitedActions?.[action]) {
             if (rest.length === 0) {
-                const lastEffective = lastEffectiveLimited(this, this.state, action);
-                if (lastEffective && lastEffective !== action) {
-                    let instead = name_map_reverse[lastEffective];
-                    if (limitedActions[lastEffective].bulk > 1) {
-                        instead = `x${limitedActions[lastEffective].bulk} ${instead}`;
+                const effective = Object.keys(this.limitedState).find(key => this.limitedState[key] !== oldLimitedState[key]);
+                if (effective && effective !== action) {
+                    let instead = name_map_reverse[effective];
+                    if (limitedActions[effective].bulk > 1) {
+                        instead = `x${limitedActions[effective].bulk} ${instead}`;
                     }
                     if (!old) this.log(`Due to Progressive Lootables, ${display}  had the effect of an extra ${instead} instead`);
-                    view.updateRegular({ name: lastEffective, index: +(zone.substring(1)) - 1 });
+                    view.updateRegular({ name: effective, index: +(zone.substring(1)) - 1 });
                 }
             } else if (rest[0] === "Search") {
                 const el = document.querySelector(`#infoContainer${action}`);
@@ -239,7 +244,7 @@ class IdleLoopsAP_class {
             this.die();
             this.client.deathLink.sendDeathLink(this.client.players.self.alias);
         } else if (x === "Progressive Lootable") {
-            const effective = lastEffectiveLimited(this, this.state);
+            const effective = Object.keys(this.limitedState).find(key => this.limitedState[key] !== oldLimitedState[key]);
             let instead = name_map_reverse[effective];
             if (limitedActions[effective].bulk > 1) {
                 instead = `x${limitedActions[effective].bulk} ${instead}`;
