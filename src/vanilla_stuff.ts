@@ -231,6 +231,9 @@ export function vanilla_overwrites(state) {
         effectiveTime = 0;
         timeNeeded = 250 + (50 * (state["Filler - 50 Starting Mana"]));
         document.title = "Idle Loops";
+        if (typeof currentLoop !== "undefined") {
+            currentLoop = totals.loops + 1;
+        }
         resetResources();
         restartStats();
         for (let i = 0; i < towns.length; i++) {
