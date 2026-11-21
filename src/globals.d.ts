@@ -14,6 +14,8 @@ declare global {
     var timeCounter: any;
     var effectiveTime: any;
     var timeNeeded: any;
+    var currentLoop: number;
+    var totals: { loops: number };
     var totalOfflineMs: any;
     var totalActionList: any;
     var saveName: any;
